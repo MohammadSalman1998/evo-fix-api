@@ -1,0 +1,252 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                  Int                   @id @default(autoincrement())
+  email               String                @unique
+  fullName            String                @db.VarChar(100)
+  phoneNO             String
+  governorate         String
+  password            String
+  address             String
+  avatar              String?
+  role                Role                  @default(USER)
+  isActive            Boolean               @default(true)
+  createdAt           DateTime              @default(now())
+  lastLogin           DateTime?
+  maintenanceRequests Maintenance_Request[] @relation("UserRequests")
+  assignedRequests    Maintenance_Request[] @relation("TechnicianAssignments")
+  sentEmails          Email[]               @relation("EmailSender")
+  receivedEmails      Email[]               @relation("EmailRecipient")
+  notifications       Notification[]
+  sms                 SMS[]
+  complaints          Complaints[]
+  reviews             Reviews[]
+  payments            Payment[]
+  resetPasswordToken  String?
+  resetPasswordExpires DateTime?
+  // aiChatSessions      AIChatSession[]
+}
+
+enum Role {
+  ADMIN
+  USER
+  TECHNICAL
+}
+
+model Maintenance_Request {
+  id            Int            @id @default(autoincrement())
+  user          User           @relation("UserRequests", fields: [userID], references: [id])
+  userID        Int
+  technician    User?          @relation("TechnicianAssignments", fields: [technicalID], references: [id])
+  technicalID   Int?
+  governorate   String
+  deviceType    String
+  // deviceModel   String
+  phoneNO       String
+  address       String
+  descProblem   String
+  status        requestStatus  @default(PENDING)
+  fee           Decimal        @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  payments      Payment[]
+  reviews       Reviews[]
+  notifications Notification[]
+  sms           SMS[]
+}
+
+enum requestStatus {
+  APPROVED
+  PENDING
+  REJECTED
+  UNDERPROCESSING
+  DONE
+  CANCELLED
+}
+
+model Payment {
+  id                   Int                 @id @default(autoincrement())
+  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequestID Int
+  user                 User                @relation(fields: [userID], references: [id])
+  userID               Int
+  amount               Decimal
+  paymentDate          DateTime            @default(now())
+  paymentState         PaymentStatus
+  transactionId        String?
+  createdAt            DateTime            @default(now())
+  invoice              Invoice?
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Reviews {
+  id                   Int                 @id @default(autoincrement())
+  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequestID Int
+  user                 User                @relation(fields: [userID], references: [id])
+  userID               Int
+  rating               Int
+  comment              String
+  createdAt            DateTime            @default(now())
+}
+
+model Notification {
+  id                   Int                 @id @default(autoincrement())
+  user                 User                @relation(fields: [userID], references: [id])
+  userID               Int
+  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequestID Int
+  message              String
+  createdAt            DateTime            @default(now())
+  isUserRead           Boolean             @default(false)
+  isTechRead           Boolean             @default(false)
+  type                 NotificationType
+}
+
+enum NotificationType {
+  APP
+  EMAIL
+  SMS
+}
+
+model Email {
+  id          Int      @id @default(autoincrement())
+  sender      User     @relation("EmailSender", fields: [senderID], references: [id])
+  senderID    Int
+  recipient   User     @relation("EmailRecipient", fields: [recipientID], references: [id])
+  recipientID Int
+  subject     String
+  body        String
+  createdAt   DateTime @default(now())
+  isRead      Boolean  @default(false)
+}
+
+model SMS {
+  id                   Int                 @id @default(autoincrement())
+  user                 User                @relation(fields: [userID], references: [id])
+  userID               Int
+  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequestID Int
+  message              String
+  createdAt            DateTime            @default(now())
+  isRead               Boolean             @default(false)
+}
+
+model Complaints {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userID], references: [id])
+  userID    Int
+  message   String
+  status    ComplaintStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Services {
+  id            Int      @id @default(autoincrement())
+  icon          String?
+  title         String
+  description   String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// New models to support additional requirements
+
+model Device {
+  id        Int      @id @default(autoincrement())
+  brand     String
+  model     String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// model AIChatSession {
+//   id        Int      @id @default(autoincrement())
+//   user      User     @relation(fields: [userID], references: [id])
+//   userID    Int
+//   messages  Json[]
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+model FAQ {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContentPage {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id        Int      @id @default(autoincrement())
+  payment   Payment  @relation(fields: [paymentId], references: [id])
+  paymentId Int      @unique
+  invoiceNumber String @unique
+  createdAt DateTime @default(now())
+  pdfUrl    String?
+}
+
+// model AIRecommendation {
+//   id        Int      @id @default(autoincrement())
+//   type      String
+//   content   String
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// model SystemMetric {
+//   id        Int      @id @default(autoincrement())
+//   name      String
+//   value     Float
+//   timestamp DateTime @default(now())
+// }
+
+// model UserToken {
+//   id        Int      @id @default(autoincrement())
+//   user      User     @relation(fields: [userId], references: [id])
+//   userId    Int
+//   token     String   @unique
+//   type      TokenType
+//   expiresAt DateTime
+//   createdAt DateTime @default(now())
+// }
+
+// enum TokenType {
+//   ACCESS
+//   REFRESH
+// }
