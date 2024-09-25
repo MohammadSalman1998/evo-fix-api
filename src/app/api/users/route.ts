@@ -16,9 +16,6 @@ import { RegisterUserSchema } from "@/utils/validationSchemas";
 export async function GET(request: NextRequest) {
     try {
         const users = await prisma.user.findMany({
-          where: {
-            role: 'USER' || 'TECHNICAL'
-          },
           select: {
             id: true,
             fullName: true,
