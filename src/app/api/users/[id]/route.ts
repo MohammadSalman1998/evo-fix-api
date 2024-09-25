@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ user }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+    return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
   }
 }
 
@@ -125,7 +125,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     return NextResponse.json(updatedUser,{status: 200})
   } catch (error) {
-    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+    return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
   }
 }
 
@@ -164,6 +164,6 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           { status: 403 },
         );
       } catch (error) {
-        return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+        return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
       }
 }

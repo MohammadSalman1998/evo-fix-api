@@ -1,6 +1,6 @@
 // src\app\api\users\logout\route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 
 /**
@@ -10,13 +10,13 @@ import { cookies, headers } from "next/headers";
  *  @access public
  */
 
-export  function GET(request: NextRequest) {
+export  function GET() {
     try {
     
       cookies().delete("jwtToken");
       return NextResponse.json({ message: "تم تسجيل الخروج" }, { status: 200 });
     } catch (error) {
-      return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+      return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
     }
   }
   

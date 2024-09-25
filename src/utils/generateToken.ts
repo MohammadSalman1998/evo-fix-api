@@ -6,7 +6,7 @@ import { serialize } from "cookie";
 
 // generate jwt token
 export function generateJWT(jwtPayload: JWTPayload): string {
-  const privateKey = process.env.JWT_SECRET;
+  const privateKey = process.env.JWT_SECRET as string;
   const token = Jwt.sign(jwtPayload, privateKey, { expiresIn: "30d" });
   return token;
 }
