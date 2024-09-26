@@ -16,7 +16,8 @@ export  function GET() {
       cookies().delete("jwtToken");
       return NextResponse.json({ message: "تم تسجيل الخروج" }, { status: 200 });
     } catch (error) {
-      return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+      console.error('Error fetching Data', error);
+      return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
     }
   }
   

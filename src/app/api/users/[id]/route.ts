@@ -13,8 +13,6 @@ interface Props {
   params: { id: string };
 }
 
-
-
 /**
  *  @method GET
  *  @route  ~/api/users/[id]
@@ -55,7 +53,8 @@ export async function GET(request: NextRequest, { params }: Props) {
 
     return NextResponse.json({ user }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+    console.error('Error fetching Data', error);
+    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
 
@@ -125,7 +124,8 @@ export async function PUT(request: NextRequest, { params }: Props) {
 
     return NextResponse.json(updatedUser,{status: 200})
   } catch (error) {
-    return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+    console.error('Error fetching Data', error);
+    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
 
@@ -164,6 +164,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           { status: 403 },
         );
       } catch (error) {
-        return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+        console.error('Error fetching Data', error);
+        return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
       }
 }

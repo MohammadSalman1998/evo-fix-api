@@ -1,0 +1,64 @@
+DOMAIN : https://evo-fix-api.vercel.app
+
+
+/**
+ *  @method GET
+ *  @route  ~/api/users
+ *  @desc   Get all users
+ *  @access private (only admin can show all users) 
+ */
+
+ -------------------------------------------------------
+
+ /**
+ *  @method POST
+ *  @route  ~/api/users
+ *  @desc   Create a new user
+ *  @access public
+ */
+
+ -------------------------------------------------------
+
+ /**
+ *  @method POST
+ *  @route  ~/api/users/login
+ *  @desc   login user
+ *  @access public
+ */
+
+ -------------------------------------------------------
+
+ /**
+ *  @method GET
+ *  @route  ~/api/users/logout
+ *  @desc   logout user
+ *  @access public
+ */
+
+
+-------------------------------------------------------
+
+/**
+ *  @method GET
+ *  @route  ~/api/users/[id]
+ *  @desc   Get user by ID
+ *  @access private (only user himself can get account )
+ */
+
+ -------------------------------------------------------
+
+ /**
+ *  @method PUT
+ *  @route  ~/api/users/[id]
+ *  @desc   Update user details
+ *  @access private (only user himself can update account or Admin)
+ */
+
+ -------------------------------------------------------
+
+ /**
+ *  @method DELETE
+ *  @route  ~/api/users/[id]
+ *  @desc   Delete user
+ *  @access private (only user himself can delete his account Or Admin)
+ */

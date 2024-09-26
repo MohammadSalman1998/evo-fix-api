@@ -1,5 +1,4 @@
 // src\app\api\users\route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { verifyToken } from "@/utils/verifyToken";
@@ -7,6 +6,8 @@ import bcrypt from "bcryptjs";
 import { setTokenCookie } from "@/utils/generateToken";
 import { RegisterUserDto } from "@/utils/dtos";
 import { RegisterUserSchema } from "@/utils/validationSchemas";
+
+
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -32,13 +33,13 @@ export async function GET(request: NextRequest) {
     
           return NextResponse.json(users, { status: 200 });
         }else{
-          return NextResponse.json({message: "ليس ليك الصلاحية"}, { status: 403 });
+          return NextResponse.json({message: "ليس لديك الصلاحية"}, { status: 403 });
     
         }
         
     
       } catch (error) {
-        console.error('Error fetching technicians:', error);
+        console.error('Error fetching Data', error);
         return NextResponse.json({ message: "خطأ في جلب البيانات " }, { status: 500 });
       }
 }
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
         );
     
       } catch (error) {
-        return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+        console.error('Error fetching Data', error);
+        return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
       }
 }

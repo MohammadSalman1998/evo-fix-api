@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         },
       );
     } catch (error) {
-      return NextResponse.json({error, message: "خطأ من الخادم" }, { status: 500 });
+      console.error('Error fetching Data', error);
+      return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
     }
   }
   
