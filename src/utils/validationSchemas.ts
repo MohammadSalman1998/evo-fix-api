@@ -1,5 +1,8 @@
 // src\utils\validationSchemas.ts
 import {z} from "zod"
+import {ERROR_MSG} from '@/utils/constants'
+
+
 
 export const CreateServiceSchema = z.object({
   title: z.string({
@@ -13,28 +16,28 @@ export const CreateServiceSchema = z.object({
  })
 
  export const RegisterUserSchema = z.object({
-  email: z.string().min(3).max(200).email(),
-  fullName: z.string().min(3).max(100),
-  governorate: z.string(),
-  phoneNO: z.string().min(9).max(14),
-  password: z.string().min(6,"6 محارف على الأقل").max(20),
-  address: z.string().min(10).max(200),
+  email: z.string({required_error: ERROR_MSG.email_err}).min(3).max(200).email({message: ERROR_MSG.email_invalid_err}),
+  fullName: z.string({required_error: ERROR_MSG.fullName_err}).min(3).max(100),
+  governorate: z.string({required_error: ERROR_MSG.governorate_err}),
+  phoneNO: z.string({required_error: ERROR_MSG.phone_err}).min(10,ERROR_MSG.phone_len_err).max(14),
+  password: z.string({required_error: ERROR_MSG.password_err}).min(6,ERROR_MSG.password_len_err).max(20),
+  address: z.string({required_error: ERROR_MSG.address_err}).min(10).max(200),
   avatar: z.string().optional(),
  })
 
  export const LoginUserSchema = z.object({
-  email: z.string().min(3).max(200).email(),
-  password: z.string().min(8).max(20),
+  email: z.string({required_error: ERROR_MSG.email_err}).min(3).max(200).email({message: ERROR_MSG.email_invalid_err}),
+  password: z.string({required_error: ERROR_MSG.password_err}).min(6,ERROR_MSG.password_len_err).max(20),
  })
 
 
  export const UpdateUserSchema = z.object({
-  email: z.string().min(3).max(200).email().optional(),
-  governorate: z.string().optional(),
-  fullName: z.string().min(3).max(100).optional(),
-  phoneNO: z.string().min(9).max(14).optional(),
-  password: z.string().min(6,"6 محارف على الأقل").max(20).optional(),
-  address: z.string().min(10).max(200).optional(),
+  email: z.string({required_error: ERROR_MSG.email_err}).min(3).max(200).email({message: ERROR_MSG.email_invalid_err}).optional(),
+  fullName: z.string({required_error: ERROR_MSG.fullName_err}).min(3).max(100).optional(),
+  governorate: z.string({required_error: ERROR_MSG.governorate_err}).optional(),
+  phoneNO: z.string({required_error: ERROR_MSG.phone_err}).min(10,ERROR_MSG.phone_len_err).max(14).optional(),
+  password: z.string({required_error: ERROR_MSG.password_err}).min(6,ERROR_MSG.password_len_err).max(20).optional(),
+  address: z.string({required_error: ERROR_MSG.address_err}).min(10).max(200).optional(),
   avatar: z.string().optional(),
  })
 
