@@ -8,63 +8,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
+// User-related models
 model User {
-  id                  Int                   @id @default(autoincrement())
-  email               String                @unique
-  fullName            String                @db.VarChar(100)
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  fullName            String    @db.VarChar(100)
   phoneNO             String
   governorate         String
   password            String
   address             String
   avatar              String?
-  role                Role                  @default(USER)
-  isActive            Boolean               @default(true)
-  createdAt           DateTime              @default(now())
+  role                Role      @default(USER)
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
   lastLogin           DateTime?
-  maintenanceRequests Maintenance_Request[] @relation("UserRequests")
-  assignedRequests    Maintenance_Request[] @relation("TechnicianAssignments")
+  resetPasswordToken  String?
+  resetPasswordExpires DateTime?
+
+  // Relations
+  customer            Customer?
+  technician          Technician?
+  subadmin               SUBADMIN?
   sentEmails          Email[]               @relation("EmailSender")
   receivedEmails      Email[]               @relation("EmailRecipient")
   notifications       Notification[]
   sms                 SMS[]
-  complaints          Complaints[]
-  reviews             Reviews[]
+  complaints          Complaint[]
+  reviews             Review[]
   payments            Payment[]
-  resetPasswordToken  String?
-  resetPasswordExpires DateTime?
-  // aiChatSessions      AIChatSession[]
+}
+
+model Customer {
+  id                  Int       @id
+  user                User      @relation(fields: [id], references: [id])
+  maintenanceRequests MaintenanceRequest[] @relation("UserRequests")
+}
+
+model Technician {
+  id                  Int       @id
+  user                User      @relation(fields: [id], references: [id])
+  assignedRequests    MaintenanceRequest[] @relation("TechnicianAssignments")
+  specialization      String?
+  services            String?
+}
+
+model SUBADMIN {
+  id                  Int       @id
+  user                User      @relation(fields: [id], references: [id])
+  department          String?
+  governorate         String?
 }
 
 enum Role {
   ADMIN
+  SUBADMIN
   USER
   TECHNICAL
 }
 
-model Maintenance_Request {
+// Maintenance-related models
+model MaintenanceRequest {
   id            Int            @id @default(autoincrement())
-  user          User           @relation("UserRequests", fields: [userID], references: [id])
+  user          Customer       @relation("UserRequests", fields: [userID], references: [id])
   userID        Int
-  technician    User?          @relation("TechnicianAssignments", fields: [technicalID], references: [id])
+  technician    Technician?    @relation("TechnicianAssignments", fields: [technicalID], references: [id])
   technicalID   Int?
   governorate   String
   deviceType    String
-  // deviceModel   String
   phoneNO       String
   address       String
   descProblem   String
-  status        requestStatus  @default(PENDING)
+  status        RequestStatus  @default(PENDING)
   fee           Decimal        @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  // Relations
   payments      Payment[]
-  reviews       Reviews[]
+  reviews       Review[]
   notifications Notification[]
   sms           SMS[]
 }
 
-enum requestStatus {
+enum RequestStatus {
   APPROVED
   PENDING
   REJECTED
@@ -73,18 +99,28 @@ enum requestStatus {
   CANCELLED
 }
 
+// Payment and Invoice models
 model Payment {
-  id                   Int                 @id @default(autoincrement())
-  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  id                   Int                @id @default(autoincrement())
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestID], references: [id])
   maintenanceRequestID Int
-  user                 User                @relation(fields: [userID], references: [id])
+  user                 User               @relation(fields: [userID], references: [id])
   userID               Int
   amount               Decimal
-  paymentDate          DateTime            @default(now())
+  paymentDate          DateTime           @default(now())
   paymentState         PaymentStatus
   transactionId        String?
-  createdAt            DateTime            @default(now())
+  createdAt            DateTime           @default(now())
   invoice              Invoice?
+}
+
+model Invoice {
+  id            Int      @id @default(autoincrement())
+  payment       Payment  @relation(fields: [paymentId], references: [id])
+  paymentId     Int      @unique
+  invoiceNumber String   @unique
+  createdAt     DateTime @default(now())
+  pdfUrl        String?
 }
 
 enum PaymentStatus {
@@ -94,34 +130,29 @@ enum PaymentStatus {
   REFUNDED
 }
 
-model Reviews {
-  id                   Int                 @id @default(autoincrement())
-  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+// Communication models
+model Review {
+  id                   Int                @id @default(autoincrement())
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestID], references: [id])
   maintenanceRequestID Int
-  user                 User                @relation(fields: [userID], references: [id])
+  user                 User               @relation(fields: [userID], references: [id])
   userID               Int
   rating               Int
   comment              String
-  createdAt            DateTime            @default(now())
+  createdAt            DateTime           @default(now())
 }
 
 model Notification {
-  id                   Int                 @id @default(autoincrement())
-  user                 User                @relation(fields: [userID], references: [id])
+  id                   Int                @id @default(autoincrement())
+  user                 User               @relation(fields: [userID], references: [id])
   userID               Int
-  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestID], references: [id])
   maintenanceRequestID Int
   message              String
-  createdAt            DateTime            @default(now())
-  isUserRead           Boolean             @default(false)
-  isTechRead           Boolean             @default(false)
+  createdAt            DateTime           @default(now())
+  isUserRead           Boolean            @default(false)
+  isTechRead           Boolean            @default(false)
   type                 NotificationType
-}
-
-enum NotificationType {
-  APP
-  EMAIL
-  SMS
 }
 
 model Email {
@@ -137,24 +168,31 @@ model Email {
 }
 
 model SMS {
-  id                   Int                 @id @default(autoincrement())
-  user                 User                @relation(fields: [userID], references: [id])
+  id                   Int                @id @default(autoincrement())
+  user                 User               @relation(fields: [userID], references: [id])
   userID               Int
-  maintenanceRequest   Maintenance_Request @relation(fields: [maintenanceRequestID], references: [id])
+  maintenanceRequest   MaintenanceRequest @relation(fields: [maintenanceRequestID], references: [id])
   maintenanceRequestID Int
   message              String
-  createdAt            DateTime            @default(now())
-  isRead               Boolean             @default(false)
+  createdAt            DateTime           @default(now())
+  isRead               Boolean            @default(false)
 }
 
-model Complaints {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userID], references: [id])
+enum NotificationType {
+  APP
+  EMAIL
+  SMS
+}
+
+// Other models
+model Complaint {
+  id        Int             @id @default(autoincrement())
+  user      User            @relation(fields: [userID], references: [id])
   userID    Int
   message   String
   status    ComplaintStatus @default(OPEN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 enum ComplaintStatus {
@@ -164,17 +202,15 @@ enum ComplaintStatus {
   CLOSED
 }
 
-model Services {
-  id            Int      @id @default(autoincrement())
-  icon          String?
-  title         String
-  description   String
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model Service {
+  id          Int      @id @default(autoincrement())
+  icon        String?
+  title       String
+  description String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
-
-// New models to support additional requirements
 
 model Device {
   id        Int      @id @default(autoincrement())
@@ -184,15 +220,6 @@ model Device {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
-// model AIChatSession {
-//   id        Int      @id @default(autoincrement())
-//   user      User     @relation(fields: [userID], references: [id])
-//   userID    Int
-//   messages  Json[]
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
 
 model FAQ {
   id        Int      @id @default(autoincrement())
@@ -211,42 +238,3 @@ model ContentPage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
-model Invoice {
-  id        Int      @id @default(autoincrement())
-  payment   Payment  @relation(fields: [paymentId], references: [id])
-  paymentId Int      @unique
-  invoiceNumber String @unique
-  createdAt DateTime @default(now())
-  pdfUrl    String?
-}
-
-// model AIRecommendation {
-//   id        Int      @id @default(autoincrement())
-//   type      String
-//   content   String
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
-
-// model SystemMetric {
-//   id        Int      @id @default(autoincrement())
-//   name      String
-//   value     Float
-//   timestamp DateTime @default(now())
-// }
-
-// model UserToken {
-//   id        Int      @id @default(autoincrement())
-//   user      User     @relation(fields: [userId], references: [id])
-//   userId    Int
-//   token     String   @unique
-//   type      TokenType
-//   expiresAt DateTime
-//   createdAt DateTime @default(now())
-// }
-
-// enum TokenType {
-//   ACCESS
-//   REFRESH
-// }

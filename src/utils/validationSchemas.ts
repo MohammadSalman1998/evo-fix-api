@@ -1,6 +1,7 @@
 // src\utils\validationSchemas.ts
 import {z} from "zod"
 import {ERROR_MSG} from '@/utils/constants'
+import { Role } from "@prisma/client"
 
 
 
@@ -23,6 +24,14 @@ export const CreateServiceSchema = z.object({
   password: z.string({required_error: ERROR_MSG.password_err}).min(6,ERROR_MSG.password_len_err).max(20),
   address: z.string({required_error: ERROR_MSG.address_err}).min(10).max(200),
   avatar: z.string().optional(),
+  isActive: z.boolean().optional(),
+  role: z.nativeEnum(Role).optional(),
+  subadmin: z.string().optional(),
+  department: z.string().optional(),
+  technician: z.string().optional(),
+  specialization: z.string().optional(),
+  services: z.string().optional(),
+  customer: z.string().optional(),
  })
 
  export const LoginUserSchema = z.object({
@@ -39,6 +48,14 @@ export const CreateServiceSchema = z.object({
   password: z.string({required_error: ERROR_MSG.password_err}).min(6,ERROR_MSG.password_len_err).max(20).optional(),
   address: z.string({required_error: ERROR_MSG.address_err}).min(10).max(200).optional(),
   avatar: z.string().optional(),
+  role: z.nativeEnum(Role).optional(),
+  isActive: z.boolean().optional(),
+  subadmin: z.string().optional(),
+  department: z.string().optional(),
+  technician: z.string().optional(),
+  specialization: z.string().optional(),
+  services: z.string().optional(),
+  customer: z.string().optional(),
  })
 
  export const Maintenance_RequestSchema = z.object({

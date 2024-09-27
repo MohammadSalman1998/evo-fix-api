@@ -1,5 +1,7 @@
 // src\utils\dtos.ts
 
+import { Role } from "@prisma/client";
+
 export interface CreateServiceDto {
   icon?: JSX.Element;
   title: string;
@@ -13,6 +15,12 @@ export interface UpdateServiceDto {
   isActive?: boolean;
 }
 
+// enum Role {
+//   ADMIN,
+//   USER,
+//   TECHNICAL
+// }
+
 export interface RegisterUserDto {
   email: string;
   fullName: string;
@@ -21,6 +29,14 @@ export interface RegisterUserDto {
   password: string;
   address: string;
   avatar?: string;
+  role?: Role;
+  customer?: { create: object };
+  technician?: { create: object };
+  specialization?: string;
+  services?: string;
+  subadmin?: { create: object };
+  department?: string;
+  governorateAdmin: string;
 }
 
 export interface LoginUserDto {
@@ -36,6 +52,15 @@ export interface UpdateUserDto {
   password?: string;
   address?: string;
   avatar?: string;
+  role?: Role;
+  isActive?: boolean;
+  customer?: { create: object };
+  technician?: { create: object };
+  specialization?: string;
+  services?: string;
+  subadmin?: { create: object };
+  department?: string;
+  governorateAdmin?: string;
 }
 
 export interface CreateMaintenance_RequestDto {
