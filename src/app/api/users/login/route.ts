@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       
   
       return NextResponse.json(
-        { message: "تمت عملية الدخول بنجاح"},
+        { message: "تمت عملية الدخول بنجاح", id: user.id},
         {
           status: 200,
           headers: { "Set-Cookie": cookie }
