@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       
   
       return NextResponse.json(
-        { message: "تمت عملية الدخول بنجاح", id: user.id},
+        { message: "تمت عملية الدخول بنجاح", id: user.id, Token: cookie},
         {
           status: 200,
           headers: { "Set-Cookie": cookie }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       );
     } catch (error) {
       console.error('Error fetching Data', error);
-      return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+      return NextResponse.json({ message: "خطأ من الخادم"}, { status: 500 });
     }
   }
   

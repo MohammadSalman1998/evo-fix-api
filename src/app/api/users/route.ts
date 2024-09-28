@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
         });
     
         return NextResponse.json(
-          {  message: "تم تسجيل الحساب بنجاح", ...userResponse },
+          {  message: "تم تسجيل الحساب بنجاح", ...userResponse, Token: cookie },
           { status: 201, headers: { "Set-Cookie": cookie } },
         );
     
