@@ -14,6 +14,6 @@ export const ERROR_MSG = {
     comment_err:"قم بكتابة التعليق",
     ratting_err:"قم بتحديد التقييم من 5",
     message_err:"حدد الرسالة المرادة",
-    descProblem_err:"اكتب المشكلة التي تواجهها",
+    problemDescription_err:"اكتب المشكلة التي تواجهها",
     deviceType_err:"حدد نوع الجهاز ",
   }

@@ -58,12 +58,12 @@ export const CreateServiceSchema = z.object({
   customer: z.string().optional(),
  })
 
- export const Maintenance_RequestSchema = z.object({
-  deviceType: z.string(),
-  governorate:z.string(),
-  phoneNO: z.string().min(10).max(13),
-  address: z.string(),
-  descProblem: z.string(),
+ export const MaintenanceRequestSchema = z.object({
+  deviceType: z.string({required_error:ERROR_MSG.deviceType_err}),
+  governorate:z.string({required_error:ERROR_MSG.governorate_err}),
+  phoneNO: z.string({required_error:ERROR_MSG.phone_err}).min(10,ERROR_MSG.phone_len_err).max(14),
+  address: z.string({required_error:ERROR_MSG.address_err}),
+  problemDescription: z.string({required_error:ERROR_MSG.problemDescription_err}),
  })
 
  export const ComplaintSchema = z.object({

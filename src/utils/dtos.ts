@@ -15,12 +15,6 @@ export interface UpdateServiceDto {
   isActive?: boolean;
 }
 
-// enum Role {
-//   ADMIN,
-//   USER,
-//   TECHNICAL
-// }
-
 export interface RegisterUserDto {
   email: string;
   fullName: string;
@@ -68,24 +62,55 @@ export interface CreateMaintenance_RequestDto {
   governorate: string;
   phoneNO: string;
   address: string;
-  descProblem: string;
-  technicalID: number;
+  problemDescription: string;
 }
 
 export interface CreateNotificationDto {
-  message: string;
+  userId: number;
+  content: string;
 }
 
-export interface UpdateStatusNotificationDto {
-  isRead: boolean;
+export interface notificationOutDto {
+  content: string;
+  createdAt: Date;
 }
 
-export interface CreateComplaintDto {
-  message: string;
+export interface CreateEmailDto{
+  subject: string;
+  content: string;
+  senderId: number;
+  recipientId: number;
 }
 
-export interface CreateReviewDto {
-  maintenanceRequestID: number;
-  ratting: number;
-  comment: string;
+export interface RecipientSentDto {
+  fullName: string;
+  // email: string;
+  address:string;
+}
+export interface RecipientSentAdminDto {
+  fullName: string;
+  email: string;
+}
+
+export interface SentEmailOutDto {
+  id: number;
+  subject: string;
+  content: string;
+  recipient: RecipientSentDto;
+  sentAt: Date;
+}
+export interface RecipientEmailOutDto {
+  id: number;
+  subject: string;
+  content: string;
+  sender: RecipientSentDto;
+  sentAt: Date;
+}
+export interface EmailOutDto {
+  id: number;
+  subject: string;
+  content: string;
+  sender: RecipientSentAdminDto;
+  recipient: RecipientSentAdminDto;
+  sentAt: Date;
 }
