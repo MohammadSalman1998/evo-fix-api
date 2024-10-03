@@ -32,6 +32,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if(!user.isActive){
+      return NextResponse.json(
+        { message: "هذا الحساب غير مفعل" },
+        { status: 403 }
+      );
+    }
+
     const isPasswordMatch = await bcrypt.compare(body.password, user.password);
     if (!isPasswordMatch) {
       return NextResponse.json(
