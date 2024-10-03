@@ -33,11 +33,12 @@ export async function GET(request: NextRequest) {
         }
       }
     })
+
    const governorate = subAdminUser?.subadmin?.governorate as string
    const subAdminRequests = await AllRequestsByGovernorate(governorate)
    return NextResponse.json(subAdminRequests, { status: 200 });
   } catch (error) {
-    console.error("Error fetching  maintenance requests", error);
+    console.error("Error fetching  maintenance requests by governorate", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
