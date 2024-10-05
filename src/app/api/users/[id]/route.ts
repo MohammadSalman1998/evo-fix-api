@@ -23,6 +23,12 @@ export async function GET(request: NextRequest, { params }: Props) {
 
   try {
     const userFromToken = verifyToken(request);
+    if(!userFromToken){
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية " },
+        { status: 403 }
+      );
+    }
       const subAdminUser = await prisma.user.findUnique({
         where:{
           id: userFromToken?.id

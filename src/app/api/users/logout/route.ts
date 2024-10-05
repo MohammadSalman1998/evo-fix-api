@@ -13,7 +13,7 @@ import { cookies } from "next/headers";
 export  function GET() {
     try {
     
-      cookies().delete("jwtToken");
+      cookies().delete("Token");
       return NextResponse.json({ message: "تم تسجيل الخروج" }, { status: 200 });
     } catch (error) {
       console.error('Error fetching Data', error);

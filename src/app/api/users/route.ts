@@ -213,15 +213,15 @@ export async function POST(request: NextRequest) {
       admin_governorate: newUser.subadmin?.governorate,
     };
 
-    const cookie = setTokenCookie({
+     setTokenCookie({
       id: newUser.id,
       role: newUser.role,
       fullName: newUser.fullName,
     });
 
     return NextResponse.json(
-      { message: "تم تسجيل الحساب بنجاح", ...userResponse, Token: cookie },
-      { status: 201, headers: { "Set-Cookie": cookie } }
+      { message: "تم تسجيل الحساب بنجاح", ...userResponse },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error creating user", error);

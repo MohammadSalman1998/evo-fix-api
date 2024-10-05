@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cookie = setTokenCookie({
+     setTokenCookie({
       id: user.id,
       role: user.role,
       fullName: user.fullName,
@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
           phoneNO: user.phoneNO,
           role: user.role
         },
-        Token: cookie,
+        // Token: cookie,
       },
       {
         status: 200,
-        headers: { "Set-Cookie": cookie },
+        // headers: { "Set-Cookie": cookie },
       }
     );
   } catch (error) {
