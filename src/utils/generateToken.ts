@@ -15,7 +15,7 @@ export function generateJWT(jwtPayload: JWTPayload): string {
 export function setTokenCookie(jwtPayload: JWTPayload): string {
   const token = generateJWT(jwtPayload);
   const cookie = serialize("jwtToken", token, {
-    httpOnly: true, 
+    httpOnly: false, 
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict", 
     path: "/",
