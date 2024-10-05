@@ -1,7 +1,6 @@
 // src\utils\generateToken.ts
 import Jwt from "jsonwebtoken";
 import { JWTPayload } from "@/types/jwtPayload";
-import { serialize } from "cookie";
 import { cookies } from 'next/headers'
 
 
