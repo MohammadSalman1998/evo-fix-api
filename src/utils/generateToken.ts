@@ -29,7 +29,7 @@ export function generateJWT(jwtPayload: JWTPayload): string {
 export function setTokenCookie(jwtPayload: JWTPayload): string {
   const token = generateJWT(jwtPayload);
   cookies().set("Token", token, {
-    httpOnly: false,
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "none",
     path: "/",
