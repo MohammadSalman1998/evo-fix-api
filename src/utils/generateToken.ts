@@ -31,7 +31,7 @@ export function setTokenCookie(jwtPayload: JWTPayload): string {
   cookies().set("Token", token, {
     httpOnly: false,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     path: "/",
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
