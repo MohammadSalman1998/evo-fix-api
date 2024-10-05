@@ -33,6 +33,7 @@ export function setTokenCookie(jwtPayload: JWTPayload): string {
     secure: process.env.NODE_ENV === "production",
     sameSite: "none",
     path: "/",
+    domain: 'http://localhost:3000',
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
   return token; // Return the token string, if that's what you want
