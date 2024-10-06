@@ -15,7 +15,7 @@ type CorsOptions = {
 const defaultOptions: CorsOptions = {
   allowedOrigins: ['http://localhost:3000','https://evo-fix-api.vercel.app','https://musical-guide-wrvrj794xq793gj6j-3000.app.github.dev'], // Add your frontend URL(s)
   allowedMethods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization','authorization'],
   exposedHeaders: [],
   maxAge: 86400, // 24 hours
   credentials: true,
