@@ -7,6 +7,7 @@ import { RegisterUserDto } from "@/utils/dtos";
 import { RegisterUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { generateJWT } from "@/utils/generateToken";
+import { createNotification } from "@/lib/notification";
 
 /**
  *  @method GET
