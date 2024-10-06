@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { verifyToken } from "@/utils/verifyToken";
 import bcrypt from "bcryptjs";
-import { setTokenCookie } from "@/utils/generateToken";
 import { RegisterUserDto } from "@/utils/dtos";
 import { RegisterUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
+import { generateJWT } from "@/utils/generateToken";
 
 /**
  *  @method GET
@@ -213,14 +213,15 @@ export async function POST(request: NextRequest) {
       admin_governorate: newUser.subadmin?.governorate,
     };
 
-     setTokenCookie({
+    const tokenPayload = {
       id: newUser.id,
       role: newUser.role,
       fullName: newUser.fullName,
-    });
+    };
 
+    const token = generateJWT(tokenPayload);
     return NextResponse.json(
-      { message: "تم تسجيل الحساب بنجاح", ...userResponse },
+      { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
       { status: 201 }
     );
   } catch (error) {
