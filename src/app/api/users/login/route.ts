@@ -1,134 +1,22 @@
-// src\app\api\users\route.ts
+// src\app\api\users\login\route.ts
+import { LoginUserDto } from "@/utils/dtos";
+import { LoginUserSchema } from "@/utils/validationSchemas";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
-import { verifyToken } from "@/utils/verifyToken";
 import bcrypt from "bcryptjs";
-import { RegisterUserDto } from "@/utils/dtos";
-import { RegisterUserSchema } from "@/utils/validationSchemas";
-import { Role } from "@prisma/client";
-import { generateJWT } from "@/utils/generateToken";
-
-/**
- *  @method GET
- *  @route  ~/api/users
- *  @desc   Get all users
- *  @access private (only admin can show all users  Or [subAdmin By same governorate])
- */
-export async function GET(request: NextRequest) {
-  try {
-    const adminToken = verifyToken(request);
-
-    const users = await prisma.user.findMany({
-      where: {
-        id: {
-          not: adminToken?.id,
-        },
-      },
-      include: {
-        customer: true,
-        technician: true,
-        subadmin: true,
-      },
-    });
-
-    const subAdmin = await prisma.user.findUnique({
-      where: {
-        id: adminToken?.id,
-      },
-      select: {
-        subadmin: {
-          select: {
-            governorate: true,
-          },
-        },
-      },
-    });
-
-    const usersByGovernorate = await prisma.user.findMany({
-      where: {
-        governorate: subAdmin?.subadmin?.governorate || "",
-        id: {
-          not: adminToken?.id,
-        },
-        role: {
-          notIn: ["ADMIN", "SUBADMIN"],
-        },
-      },
-      include: {
-        customer: true,
-        technician: true,
-      },
-    });
-
-    const usersByGovernorateResponse = usersByGovernorate.map(
-      (userByGovernorate) => ({
-        id: userByGovernorate.id,
-        fullName: userByGovernorate.fullName,
-        email: userByGovernorate.email,
-        governorate: userByGovernorate.governorate,
-        phoneNO: userByGovernorate.phoneNO,
-        address: userByGovernorate.address,
-        role: userByGovernorate.role,
-        isActive: userByGovernorate.isActive,
-        technician_specialization: userByGovernorate.technician?.specialization,
-        technician_services: userByGovernorate.technician?.services,
-      })
-    );
-
-    const usersResponse = users.map((user) => ({
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      governorate: user.governorate,
-      phoneNO: user.phoneNO,
-      address: user.address,
-      role: user.role,
-      isActive: user.isActive,
-      technician_specialization: user.technician?.specialization,
-      technician_services: user.technician?.services,
-      admin_department: user.subadmin?.department,
-      admin_governorate: user.subadmin?.governorate,
-    }));
-
-    const countUsers = usersByGovernorate.length;
-    const countUsersByGovernorate = users.length;
-
-    if (countUsers < 1 || countUsersByGovernorate < 1) {
-      return NextResponse.json(
-        { message: "لا يوجد حسابات متاحة" },
-        { status: 404 }
-      );
-    }
-
-    if (adminToken !== null && adminToken.role === "ADMIN") {
-      return NextResponse.json(usersResponse, { status: 200 });
-    } else if (adminToken !== null && adminToken.role === "SUBADMIN") {
-      return NextResponse.json(usersByGovernorateResponse, { status: 200 });
-    } else {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية" },
-        { status: 403 }
-      );
-    }
-  } catch (error) {
-    console.error("Error fetching users", error);
-    return NextResponse.json(
-      { message: "خطأ في جلب البيانات " },
-      { status: 500 }
-    );
-  }
-}
+import { generateJWT} from "@/utils/generateToken";
 
 /**
  *  @method POST
- *  @route  ~/api/users
- *  @desc   Create a new user
+ *  @route  ~/api/users/login
+ *  @desc   login user
  *  @access public
  */
+
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as RegisterUserDto;
-    const validation = RegisterUserSchema.safeParse(body);
+    const body = (await request.json()) as LoginUserDto;
+    const validation = LoginUserSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
         { message: validation.error.errors[0].message },
@@ -136,96 +24,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: body.email,
-      },
-    });
-    if (user) {
+    const user = await prisma.user.findUnique({ where: { email: body.email } });
+    if (!user) {
       return NextResponse.json(
-        { message: "هذا الحساب موجود مسبقا" },
+        { message: "الإيميل أو كلمة المرور غير صالحة" },
         { status: 400 }
       );
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(body.password, salt);
+    if(!user.isActive){
+      return NextResponse.json(
+        { message: "هذا الحساب غير مفعل" },
+        { status: 403 }
+      );
+    }
 
-    const newUser = await prisma.user.create({
-      data: {
-        email: body.email,
-        governorate: body.governorate,
-        fullName: body.fullName,
-        password: hashedPassword,
-        phoneNO: body.phoneNO,
-        address: body.address,
-        avatar: body.avatar,
-        isActive:
-          body.role === Role.TECHNICAL ||
-          body.role === Role.ADMIN ||
-          body.role === Role.SUBADMIN
-            ? false
-            : true,
-        role: (body.role as Role) || Role.USER,
-        customer:
-          body.role !== Role.SUBADMIN &&
-          body.role !== Role.ADMIN &&
-          body.role !== Role.TECHNICAL
-            ? { create: {} }
-            : undefined,
-        technician:
-          body.role === Role.TECHNICAL
-            ? {
-                create: {
-                  specialization: body.specialization,
-                  services: body.services,
-                },
-              }
-            : undefined,
-        subadmin:
-          body.role === Role.SUBADMIN
-            ? {
-                create: {
-                  department: "مدير محافظة بقسم الصيانة",
-                  governorate: body.governorateAdmin || body.governorate,
-                },
-              }
-            : undefined,
-      },
-      include: {
-        customer: true,
-        technician: true,
-        subadmin: true,
-      },
-    });
-
-    const userResponse = {
-      id: newUser.id,
-      fullName: newUser.fullName,
-      email: newUser.email,
-      phoneNO: newUser.phoneNO,
-      governorate: newUser.governorate,
-      role: newUser.role,
-      // customerId: newUser.customer?.id,
-      technician_specialization: newUser.technician?.specialization,
-      technician_services: newUser.technician?.services,
-      admin_department: newUser.subadmin?.department,
-      admin_governorate: newUser.subadmin?.governorate,
-    };
+    const isPasswordMatch = await bcrypt.compare(body.password, user.password);
+    if (!isPasswordMatch) {
+      return NextResponse.json(
+        { message: "الإيميل أو كلمة المرور غير صالحة" },
+        { status: 400 }
+      );
+    }
 
     const tokenPayload = {
-      id: newUser.id,
-      role: newUser.role,
-      fullName: newUser.fullName,
+      id: user.id,
+      role: user.role,
+      fullName: user.fullName,
     };
 
     const token = generateJWT(tokenPayload);
+
     return NextResponse.json(
-      { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
-      { status: 201 }
+      {
+        message: "تمت عملية الدخول بنجاح",
+        token,
+        info: {
+          id: user.id,
+          name: user.fullName,
+          email: user.email,
+          governorate: user.governorate,
+          address: user.address,
+          phoneNO: user.phoneNO,
+          role: user.role
+        },
+      },
+      {
+        status: 200,
+      }
     );
   } catch (error) {
-    console.error("Error creating user", error);
+    console.error("Error fetching Data", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
