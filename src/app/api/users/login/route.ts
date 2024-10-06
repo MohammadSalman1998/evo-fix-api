@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { message: "الإيميل أو كلمة المرور غير صالحة" },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!isPasswordMatch) {
       return NextResponse.json(
         { message: "الإيميل أو كلمة المرور غير صالحة" },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
