@@ -1,34 +1,22 @@
-// src\utils\verifyToken.ts
-import jwt from "jsonwebtoken";
-import { NextRequest, NextResponse } from "next/server";
-import { JWTPayload } from "@/types/jwtPayload";
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { JWTPayload } from '@/types/jwtPayload';
 
-//verify token fo api endpoint
-export function verifyToken(request: NextRequest): JWTPayload | null {
+const secret = process.env.JWT_SECRET as string;
+
+export  function verifyToken(req: NextRequest): JWTPayload | null {
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+     return null
+  }
+
+  const token = authHeader.split(' ')[1]; 
+
   try {
-    const jwtToken = request.cookies.get("Token");
-    const token = jwtToken?.value;
-    if (!token) return null;
-    const privateKey = process.env.JWT_SECRET as string;
-    const userPayload = jwt.verify(token, privateKey)  as JWTPayload;
-    return userPayload;
+    const userPayload = jwt.verify(token, secret) as JWTPayload;
+    return userPayload; 
   } catch (error) {
     return NextResponse.json({error}), null ;
-
-  }
-}
-
-
-
-//verify token for pages
-export function verifyTokenForPage(token: string): JWTPayload | null {
-
-  try {
-    if (!token) return null;
-    const privateKey = process.env.JWT_SECRET as string;
-    const userPayload = jwt.verify(token, privateKey)  as JWTPayload;
-    return userPayload;
-  } catch (error) {
-    return NextResponse.json({error}), null
   }
 }
