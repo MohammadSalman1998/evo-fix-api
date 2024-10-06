@@ -213,6 +213,17 @@ export async function POST(request: NextRequest) {
       admin_governorate: newUser.subadmin?.governorate,
     };
 
+      const admins = await prisma.user.findMany({
+      where: { role:Role.ADMIN || Role.SUBADMIN },
+    })
+
+    for (const admin of admins) {
+      await createNotification({
+        userId: admin.id,
+        content: `طلب حساب تقني جديد: ${newUser.fullName, newUser.technician?.specialization}`,
+      });
+    }
+
     const tokenPayload = {
       id: newUser.id,
       role: newUser.role,
