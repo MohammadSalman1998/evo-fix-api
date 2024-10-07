@@ -117,3 +117,5 @@ ALTER TABLE "Email" ADD CONSTRAINT "Email_senderId_fkey" FOREIGN KEY ("senderId"
 
 -- AddForeignKey
 ALTER TABLE "Email" ADD CONSTRAINT "Email_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "Notification" ADD COLUMN     "title" TEXT;
