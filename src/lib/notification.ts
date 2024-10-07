@@ -7,7 +7,7 @@ import { Notification } from '@prisma/client';
 
 export async function createNotification({
   userId,
-  title,
+  title = "title",
   content,
 }: CreateNotificationDto): Promise<Notification> {
   try {
