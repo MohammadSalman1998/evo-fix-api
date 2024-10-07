@@ -61,6 +61,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
+     const countUsers = users.length;
+    const countUsersByGovernorate = usersByGovernorate.length;
+
+    if (adminToken?.role === "ADMIN" && countUsers < 1) {
+      return NextResponse.json(
+        { message: "لا يوجد حسابات متاحة" },
+        { status: 200 }
+      );
+    } else if (adminToken?.role === "SUBADMIN" && countUsersByGovernorate < 1) {
+      return NextResponse.json(
+        { message: "لا يوجد حسابات متاحة" },
+        { status: 200 }
+      );  
+    }
+
     const usersByGovernorateResponse = usersByGovernorate.map(
       (userByGovernorate) => ({
         id: userByGovernorate.id,
@@ -90,16 +105,6 @@ export async function GET(request: NextRequest) {
       admin_department: user.subadmin?.department,
       admin_governorate: user.subadmin?.governorate,
     }));
-
-     const countUsers = users.length;
-    const countUsersByGovernorate = usersByGovernorate.length;
-
-    if (countUsers < 1 || countUsersByGovernorate < 1) {
-      return NextResponse.json(
-        { message: "لا يوجد حسابات متاحة" },
-        { status: 404 }
-      );
-    }
 
     if (adminToken !== null && adminToken.role === "ADMIN") {
       return NextResponse.json(usersResponse, { status: 200 });
