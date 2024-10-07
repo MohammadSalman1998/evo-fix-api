@@ -67,7 +67,7 @@ export interface CreateMaintenance_RequestDto {
 
 export interface CreateNotificationDto {
   userId: number;
-  title: string;
+  title?: string;
   content: string;
 }
 
