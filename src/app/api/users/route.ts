@@ -228,19 +228,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const content = {
-      desc: "طلب حساب تقني جديد",
+  const notificationNewTechAccountData = {
+      title: "طلب حساب تقني جديد",
       name: `الاسم: ${newUser.fullName}`,
       specialization: `الاختصاص: ${newUser.technician?.specialization}`,
-    }
+    };
 
     for (const admin of admins) {
       if (newUser.role === Role.TECHNICAL) {
-        if(admin.role === "ADMIN" || (admin.governorate === newUser.governorate && admin.role === "SUBADMIN")){
-
+        if (
+          admin.role === "ADMIN" ||
+          (admin.governorate === newUser.governorate &&
+            admin.role === "SUBADMIN")
+        ) {
           await createNotification({
             userId: admin.id,
-            content: `${content.desc} - ${content.name} - ${content.specialization}`
+            title: notificationNewTechAccountData.title,
+            content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
           });
         }
       }
