@@ -7,6 +7,7 @@ import { UpdateUserDto } from "@/utils/dtos";
 import bcrypt from "bcryptjs";
 import { UpdateUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
+import { sendEmail } from "@/lib/email";
 
 interface Props {
   params: { id: string };
