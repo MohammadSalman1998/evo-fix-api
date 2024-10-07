@@ -194,10 +194,19 @@ export async function PUT(request: NextRequest, { params }: Props) {
       admin_governorate: updatedUser.subadmin?.governorate,
   };
 
-     if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
+    const activeAccountEmail = {
+    subject: "تفعيل حساب",
+    content: "تم تفعيل الحساب بنجاح",
+    email: user.email,
+  }
+
+  if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
     await sendEmail({
-      subject: "تفعيل حساب",
-      content: "تم تفعيل الحساب بنجاح",
+      subject: activeAccountEmail.subject,
+      content:`
+      ${activeAccountEmail.content} 
+يمكن الدخول الى حسابك عبر الإيميل: ${activeAccountEmail.email}
+      `,
       senderId: userFromToken.id,
       recipientId: updatedUser.id,
     })
