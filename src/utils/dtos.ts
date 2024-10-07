@@ -67,13 +67,16 @@ export interface CreateMaintenance_RequestDto {
 
 export interface CreateNotificationDto {
   userId: number;
+  title: string;
   content: string;
 }
 
 export interface notificationOutDto {
+  title: string;
   content: string;
   createdAt: Date;
 }
+
 
 export interface CreateEmailDto{
   subject: string;
