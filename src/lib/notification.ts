@@ -7,12 +7,14 @@ import { Notification } from '@prisma/client';
 
 export async function createNotification({
   userId,
+  title,
   content,
 }: CreateNotificationDto): Promise<Notification> {
   try {
     const notification = await prisma.notification.create({
       data: {
         userId,
+        title,
         content,
       }
     });
@@ -32,6 +34,7 @@ export async function markNotificationAsRead(notificationId: number,userId: numb
       select:{
         id:true,
         content:true,
+        title: true,
         createdAt:true,
       },
     });
@@ -51,6 +54,8 @@ export async function getUserNotifications(userId: number): Promise<notification
       where: { userId },
       select:{
         id:true,
+        userId:true,
+        title:true,
         content:true,
         createdAt:true,
       },
