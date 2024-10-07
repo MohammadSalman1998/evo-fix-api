@@ -193,6 +193,15 @@ export async function PUT(request: NextRequest, { params }: Props) {
       admin_governorate: updatedUser.subadmin?.governorate,
   };
 
+     if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
+    await sendEmail({
+      subject: "تفعيل حساب",
+      content: "تم تفعيل الحساب بنجاح",
+      senderId: userFromToken.id,
+      recipientId: updatedUser.id,
+    })
+  }
+
   if ((userFromToken !== null) && (userFromToken.id === user.id || userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")) {
     return NextResponse.json(
       {  message: "تم تحديث الحساب بنجاح" , ...userResponse},
