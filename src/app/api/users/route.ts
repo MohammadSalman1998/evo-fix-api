@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       admin_governorate: user.subadmin?.governorate,
     }));
 
-     const countUsers = usersResponse.length;
+     const countUsers = users.length;
     const countUsersByGovernorate = usersByGovernorate.length;
 
     if (countUsers < 1 || countUsersByGovernorate < 1) {
