@@ -1,7 +1,39 @@
 // src\lib\email.ts
 import prisma from "@/utils/db";
-import { CreateEmailDto,SentEmailOutDto,RecipientEmailOutDto,EmailOutDto } from "@/utils/dtos";
+import { CreateEmailDto,SentEmailOutDto,RecipientEmailOutDto,EmailOutDto, MailOptionsDto } from "@/utils/dtos";
 import { Email } from "@prisma/client";
+import nodemailer from 'nodemailer';
+
+// Create a transporter object using Gmail's SMTP server
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GOOGLE_EMAIL_APP_EVOFIX, // Sender email address from env
+    pass: process.env.GOOGLE_PASSWORD_APP_EVOFIX, // App password from env
+  },
+});
+
+
+
+// Function to send mail with dynamic values
+export async function sendRealMail({ to, subject, text, html }: MailOptionsDto): Promise<void> {
+  // Create dynamic mailOptions
+  const mailOptions = {
+    from: process.env.GOOGLE_EMAIL_APP_EVOFIX, // Sender address from env
+    to,  // Receiver (passed as an argument)
+    subject, // Subject (passed as an argument)
+    text: text || '', // Plain text body (optional)
+    html: html || '', // HTML body (optional)
+  };
+
+  try {
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.response);
+  } catch (error) {
+    console.error('Error while sending email:', error);
+  }
+}
 
 
 

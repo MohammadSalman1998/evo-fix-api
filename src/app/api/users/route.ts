@@ -8,7 +8,6 @@ import { RegisterUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { generateJWT } from "@/utils/generateToken";
 import { createNotification } from "@/lib/notification";
-
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -229,7 +228,7 @@ export async function POST(request: NextRequest) {
     });
 
   const notificationNewTechAccountData = {
-      title: "طلب حساب تقني جديد",
+      title: "طلب تفعيل حساب تقني",
       name: `الاسم: ${newUser.fullName}`,
       specialization: `الاختصاص: ${newUser.technician?.specialization}`,
     };
@@ -242,7 +241,8 @@ export async function POST(request: NextRequest) {
             admin.role === "SUBADMIN")
         ) {
           await createNotification({
-            userId: admin.id,
+            senderId: newUser.id,
+            recipientId: admin.id,
             title: notificationNewTechAccountData.title,
             content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
           });

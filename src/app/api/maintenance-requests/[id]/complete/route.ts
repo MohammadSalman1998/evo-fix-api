@@ -5,7 +5,8 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 
 
 /**
@@ -45,6 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
               id: true,
               fullName: true,
               governorate: true,
+              email:true,
             },
           },
        },
@@ -73,8 +75,30 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Create notification for the user
     await createNotification({
-      userId: maintenance.costumerID,
+      recipientId: maintenance.costumerID,
+      senderId:technician.id,
+      title: "إنجاز الطلب",
       content: `تم إكمال طلب الصيانة  ${maintenance.deviceType}. يرجى دفع الرسوم ${maintenance.cost} ل.س لاستلام الجهاز.`,
+    });
+
+    await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+      إن  طلب الصيانة الخاص بك
+      ${maintenance.deviceType}
+      تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
+      ${maintenance.cost} ل.س
+      `)
+
+
+    await sendRealMail({
+      to: maintenanceRequest.user.email,
+      subject: " إنجاز طلب الصيانة",
+      html: ` <div dir="rtl">
+  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+  <h3> لقد تم الانتهاء من طلب الصيانة ${maintenance.deviceType} </h3>
+  <h2>سيتم إرسال الفريق التقني الى العنوان بعد أن تستكمل دفع الرسوم </h2>
+  <b>${maintenanceRequest.address}</b>
+</div>`,
     });
 
     return NextResponse.json({ message: "تم إكمال طلب الصيانة بنجاح", request: maintenance });

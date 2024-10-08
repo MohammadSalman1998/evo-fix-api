@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
+import { sendSms } from "@/lib/sms";
 
 /**
  *  @method PUT
@@ -48,6 +49,7 @@ export async function PUT(
             id: true,
             fullName: true,
             governorate: true,
+            email:true
           },
         },
       },
@@ -82,8 +84,27 @@ export async function PUT(
 
     // Create notification for the user
     await createNotification({
-      userId: maintenanceRequest.customerId,
+      recipientId: maintenanceRequest.customerId,
+      senderId:technician.id ,
+      title:"تكلفة الطلب",
       content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
+    });
+
+    await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+      إن تكلفة طلب الصيانة الخاص بك
+      ${maintenance.deviceType} 
+      هي ${maintenance.cost} ل.س
+      إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `)
+
+    await sendRealMail({
+      to: maintenanceRequest.user.email,
+      subject: " تكلفة طلب صيانة",
+      html: ` <div dir="rtl">
+  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+  <h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
+  <b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
+</div>`,
     });
 
     return NextResponse.json({

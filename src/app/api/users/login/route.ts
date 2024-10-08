@@ -6,6 +6,7 @@ import prisma from "@/utils/db";
 import bcrypt from "bcryptjs";
 import { generateJWT} from "@/utils/generateToken";
 
+
 /**
  *  @method POST
  *  @route  ~/api/users/login
@@ -32,12 +33,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if(!user.isActive){
-      return NextResponse.json(
-        { message: "هذا الحساب غير مفعل" },
-        { status: 403 }
-      );
-    }
+    // if(!user.isActive){
+    //   return NextResponse.json(
+    //     { message: "هذا الحساب غير مفعل" },
+    //     { status: 403 }
+    //   );
+    // }
 
     const isPasswordMatch = await bcrypt.compare(body.password, user.password);
     if (!isPasswordMatch) {
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
     };
 
     const token = generateJWT(tokenPayload);
+
 
     return NextResponse.json(
       {

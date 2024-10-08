@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -16,9 +16,11 @@
     "evofix": "file:",
     "jsonwebtoken": "^9.0.2",
     "next": "14.2.13",
+    "nodemailer": "^6.9.15",
     "prisma": "^5.20.0",
     "react": "^18",
     "react-dom": "^18",
+    "twilio": "^5.3.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -27,8 +29,10 @@
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.16",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/twilio": "^3.19.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.13",
     "postcss": "^8",

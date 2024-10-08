@@ -8,6 +8,7 @@ import { createNotification } from '@/lib/notification';
 import { MaintenanceRequestSchema } from '@/utils/validationSchemas';
 import { verifyToken } from "@/utils/verifyToken";
 import { CreateMaintenance_RequestDto } from '@/utils/dtos';
+import { sendRealMail } from '@/lib/email';
 
 
 /**
@@ -48,11 +49,33 @@ export async function POST(request: NextRequest) {
       where: { role: Role.TECHNICAL },
     });
 
+    const notificationNewOrderData = {
+      title: "طلب صيانة جديد",
+      deviceType: `نوع الجهاز: ${newRequest.deviceType}`,
+      governorate: `المحافظة: ${newRequest.governorate}`,
+    };
+
+
     for (const technician of technicians) {
       await createNotification({
-        userId: technician.id,
-        content: `طلب صيانة جديد: ${newRequest.deviceType}`,
+        recipientId: technician.id,
+        senderId: user.id,
+        title: notificationNewOrderData.title,
+        content: `${notificationNewOrderData.deviceType} - ${notificationNewOrderData.governorate}`,
       });
+
+      await sendRealMail({
+        to: technician.email,
+        subject:notificationNewOrderData.title ,
+        html: ` 
+        <div dir="rtl">
+          <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+          <h1>سيد/ة ${technician.fullName}</h1>
+          <h3>هناك طلب صيانة جديد يمكنك الدخول الى حسابك لمعرفة التفاصيل</h3>
+          <h2>${notificationNewOrderData.deviceType} - ${notificationNewOrderData.governorate}</h2>
+        </div>
+      ` 
+      })
     }
 
     return NextResponse.json({ message: "تم إنشاء طلب الصيانة بنجاح", request: newRequest }, { status: 201 });

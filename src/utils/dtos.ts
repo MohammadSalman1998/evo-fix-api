@@ -66,7 +66,8 @@ export interface CreateMaintenance_RequestDto {
 }
 
 export interface CreateNotificationDto {
-  userId: number;
+  senderId: number;
+  recipientId: number;
   title?: string;
   content: string;
 }
@@ -75,6 +76,13 @@ export interface notificationOutDto {
   title: string;
   content: string;
   createdAt: Date;
+}
+
+export interface MailOptionsDto {
+  to: string;
+  subject: string;
+  text?: string; // Plain text body (optional)
+  html?: string; // HTML body (optional)
 }
 
 

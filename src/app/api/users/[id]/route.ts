@@ -7,7 +7,9 @@ import { UpdateUserDto } from "@/utils/dtos";
 import bcrypt from "bcryptjs";
 import { UpdateUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
-import { sendEmail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
+
 
 interface Props {
   params: { id: string };
@@ -194,22 +196,26 @@ export async function PUT(request: NextRequest, { params }: Props) {
       admin_governorate: updatedUser.subadmin?.governorate,
   };
 
-    const activeAccountEmail = {
-    subject: "تفعيل حساب",
-    content: "تم تفعيل الحساب بنجاح",
-    email: user.email,
-  }
+
+  const activeTechAccount_mail = {
+    to: user.email, 
+    subject: 'حساب تقني جديد', 
+    html: ` 
+    <div dir="rtl">
+      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+      <h1>سيد/ة ${user.fullName}</h1>
+      <h3>يسعدنا انضمامك لفريقنا</h3>
+      <h2>لقد تم تفعيل حسابك بنجاح</h2>
+      <b>يمكنك تسجيل الدخول عبر الايميل ${user.email}</b>
+    </div>
+  ` 
+  };
 
   if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
-    await sendEmail({
-      subject: activeAccountEmail.subject,
-      content:`
-      ${activeAccountEmail.content} 
-يمكن الدخول الى حسابك عبر الإيميل: ${activeAccountEmail.email}
-      `,
-      senderId: userFromToken.id,
-      recipientId: updatedUser.id,
-    })
+    sendRealMail(activeTechAccount_mail)
+    sendSms(`   ترحب بكم EvoFix سيد/ة ${user.fullName}
+       تم تفعيل حسابك بنجاح`)
+
   }
 
   if ((userFromToken !== null) && (userFromToken.id === user.id || userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")) {
@@ -268,7 +274,19 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       );
     }
 
-    
+    const deleteAccount_mail = {
+      to: user.email, 
+      subject: 'حذف حساب', 
+      html: ` 
+      <div dir="rtl">
+        <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+        <h1>سيد/ة ${user.fullName}</h1>
+        <h3>لقد تم حذف حسابك نهائيا من المنصة</h3>
+        <h2>ان كان هناك خطأ ما </h2>
+        <b>يمكنك  إخبار المسؤول بذلك عبر الايميل mohammad.salman.m1998@gmail.com</b>
+      </div>
+    ` 
+    };
     
 
     if ((userFromToken !== null) && ((userFromToken.id === user.id || userFromToken.role === "ADMIN") || (userFromToken.role === "SUBADMIN" && subAdminUser?.subadmin?.governorate === user.governorate && user.role !== "SUBADMIN" && user.role !== "ADMIN"))) {
@@ -284,9 +302,14 @@ export async function DELETE(request: NextRequest, { params }: Props) {
             await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
         }
 
+        sendRealMail(deleteAccount_mail)
         // Finally, delete the user
         await prisma.user.delete({ where: { id: parseInt(params.id) } });
     });
+
+  
+
+
       // await prisma.user.delete({ where: { id: parseInt(params.id) } });
       return NextResponse.json(
         { message: "تم حذف الحساب بنجاح" },

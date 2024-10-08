@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
 
 /**
@@ -46,6 +46,7 @@ export async function PUT(
             id: true,
             fullName: true,
             governorate: true,
+            email: true,
           },
         },
       },
@@ -64,17 +65,32 @@ export async function PUT(
     };
 
     // Send email to the user
-      await sendEmail({
-        subject: "تم تعيين تقني لطلب الصيانة الخاص بك",
-        content: `تم تعيين تقني لطلب الصيانة  ${maintenance.deviceType}. سيتم التواصل معك قريبًا.`,
-        senderId: technician.id,
-        recipientId: maintenance.costumerID,
-      });
+    await sendEmail({
+      subject: "تم تعيين تقني لطلب الصيانة الخاص بك",
+      content: `تم تعيين تقني لطلب الصيانة  ${maintenance.deviceType}. سيتم التواصل معك قريبًا.`,
+      senderId: technician.id,
+      recipientId: maintenance.costumerID,
+    });
 
     // Create notification for the user
     await createNotification({
-      userId: maintenanceRequest.customerId,
+      recipientId: maintenanceRequest.customerId,
+      senderId: technician.id,
+      title: "استلام الطلب",
       content: `تم تعيين تقني لطلب الصيانة  - ${maintenance.deviceType}`,
+    });
+
+    await sendRealMail({
+      to: maintenanceRequest.user.email,
+      subject: " استلام طلب صيانة",
+      html: ` <div dir="rtl">
+  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+  <h3> لقد تم تعيين تقني لطلب الصيانة ${maintenance.deviceType} </h3>
+  <h2>سيتم إرسال الفريق التقني الى العنوان المحدد </h2>
+  <b>${maintenanceRequest.address}</b>
+  <b>ومن ثم سيتم تعيين وإرسال التكلفة قبل البدء</b>
+</div>`,
     });
 
     return NextResponse.json({
@@ -83,6 +99,9 @@ export async function PUT(
     });
   } catch (error) {
     console.error("Error assigning technician", error);
-    return NextResponse.json({ message: "خطأ من الخادم أم أن الطلب غير متاح" }, { status: 500 | 401 });
+    return NextResponse.json(
+      { message: "خطأ من الخادم أم أن الطلب غير متاح" },
+      { status: 500 | 401 }
+    );
   }
 }

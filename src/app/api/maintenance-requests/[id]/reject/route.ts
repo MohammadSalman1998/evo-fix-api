@@ -4,7 +4,7 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendRealMail } from "@/lib/email";
 
 
 
@@ -56,6 +56,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
                                 id:true,
                                 fullName:true,
                                 governorate:true,
+                                email:true,
                             }
                         }
                     }
@@ -94,8 +95,22 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   
         // Create notification for the technician
         await createNotification({
-          userId: maintenanceRequest.technician?.user.id ,
+          recipientId: maintenanceRequest.technician?.user.id ,
+          senderId: user.id,
+          title: "رفض تكلفة الطلب" ,
           content: `تم رفض عرض السعر لطلب الصيانة - ${maintenance.deviceType}`,
+        });
+
+        await sendRealMail({
+          to: maintenanceRequest.technician.user.email,
+          subject: " رفض تكلفة طلب صيانة",
+          html: ` <div dir="rtl">
+      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+      <h1>سيد/ة ${maintenanceRequest.technician.user.fullName}</h1>
+      <h3> لقد تم رفض تكلفة طلب الصيانة ${maintenance.deviceType} </h3>
+      <h2>يمكنك إعادة القطعة إلى العنوان التالي</h2>
+      <b>${maintenanceRequest.address}</b>
+    </div>`,
         });
       }
   

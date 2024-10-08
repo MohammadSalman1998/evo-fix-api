@@ -6,14 +6,16 @@ import { Notification } from '@prisma/client';
 
 
 export async function createNotification({
-  userId,
+  senderId,
+  recipientId,
   title = "title",
   content,
 }: CreateNotificationDto): Promise<Notification> {
   try {
     const notification = await prisma.notification.create({
       data: {
-        userId,
+        senderId,
+        recipientId,
         title,
         content,
       }
@@ -29,7 +31,7 @@ export async function createNotification({
 export async function markNotificationAsRead(notificationId: number,userId: number): Promise<notificationOutDto> {
   try {
     const updatedNotification = await prisma.notification.update({
-      where: { id: notificationId, userId },
+      where: { id: notificationId, recipientId:userId },
       data: { isRead: true },
       select:{
         id:true,
@@ -51,13 +53,15 @@ export async function markNotificationAsRead(notificationId: number,userId: numb
 export async function getUserNotifications(userId: number): Promise<notificationOutDto[]> {
   try {
     const notifications = await prisma.notification.findMany({
-      where: { userId },
+      where: { recipientId: userId },
       select:{
         id:true,
-        userId:true,
+        recipientId:true,
+        senderId:true,
         title:true,
         content:true,
         createdAt:true,
+        isRead:true
       },
       orderBy: { createdAt: 'desc' },
       // take: limit,
