@@ -84,11 +84,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
-
-
-/**
- *  @method GET
- *  @route  ~/api/maintenance-requests
- *  @desc  Get All Maintenance Requests 
- *  @access Private only
- */
