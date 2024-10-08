@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Send notification to all technicians
     const technicians = await prisma.user.findMany({
-      where: { role: Role.TECHNICAL },
+      where: { role: Role.TECHNICAL, isActive:true },
     });
 
     const notificationNewOrderData = {
