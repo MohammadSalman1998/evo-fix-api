@@ -8,6 +8,8 @@ import { RegisterUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { generateJWT } from "@/utils/generateToken";
 import { createNotification } from "@/lib/notification";
+import { sendRealMail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -246,6 +248,22 @@ export async function POST(request: NextRequest) {
             title: notificationNewTechAccountData.title,
             content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
           });
+
+          await sendRealMail({
+            to: admin.email,
+            subject:notificationNewTechAccountData.title ,
+            html: ` 
+            <div dir="rtl">
+              <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+              <h1>سيد/ة ${admin.fullName}</h1>
+              <h3>هناك طلب حساب تقني جديد الرجاء الدخول الى حسابك لمعرفة التفاصيل وتفعيل الحساب</h3>
+              <h2>${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}</h2>
+            </div>
+          ` 
+          })
+
+           sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
+            يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
         }
       }
     }
