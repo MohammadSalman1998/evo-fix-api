@@ -2,7 +2,7 @@
 import prisma from "@/utils/db";
 import { CreateNotificationDto, notificationOutDto } from "@/utils/dtos";
 import { Notification } from '@prisma/client';
-
+import { sendToUser } from "../websocket-server";
 
 
 export async function createNotification({
@@ -21,12 +21,24 @@ export async function createNotification({
       }
     });
 
+    sendToUser(recipientId, {
+      type: "NEW_NOTIFICATION",
+      data: {
+        recipientId,
+        title,
+        content,
+        createdAt: new Date(),
+      },
+    });
+
     return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
     throw new Error('Failed to create notification');
   }
 }
+
+
 
 export async function markNotificationAsRead(notificationId: number,userId: number): Promise<notificationOutDto> {
   try {
