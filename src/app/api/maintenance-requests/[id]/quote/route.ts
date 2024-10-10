@@ -36,9 +36,14 @@ export async function PUT(
 
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
-         id: requestId ,
-         status: "ASSIGNED",
+        id: requestId,
+        technician: {
+          user: {
+            isActive: true,
+          },
         },
+        status: "ASSIGNED",
+      },
       data: {
         cost: cost,
         status: RequestStatus.QUOTED,
@@ -49,7 +54,7 @@ export async function PUT(
             id: true,
             fullName: true,
             governorate: true,
-            email:true
+            email: true,
           },
         },
       },
@@ -63,18 +68,19 @@ export async function PUT(
     }
 
     const maintenance = {
-        RequestID: maintenanceRequest.id,
-        deviceType: maintenanceRequest.deviceType,
-        problemDescription: maintenanceRequest.problemDescription,
-        cost: maintenanceRequest.cost,
-        isPaid: maintenanceRequest.isPaid,
-        status: maintenanceRequest.status,
-        costumerID: maintenanceRequest.user.id,
-        costumerName: maintenanceRequest.user.fullName,
-        costumerGovernorate: maintenanceRequest.user.governorate,
-    }
+      RequestID: maintenanceRequest.id,
+      deviceType: maintenanceRequest.deviceType,
+      problemDescription: maintenanceRequest.problemDescription,
+      cost: maintenanceRequest.cost,
+      isPaid: maintenanceRequest.isPaid,
+      status: maintenanceRequest.status,
+      costumerID: maintenanceRequest.user.id,
+      costumerName: maintenanceRequest.user.fullName,
+      costumerGovernorate: maintenanceRequest.user.governorate,
+    };
 
-    // Send email to the user
+    if (maintenanceRequest) {
+      // Send email to the user
       await sendEmail({
         subject: "تم تقديم عرض سعر لطلب الصيانة",
         content: `تم تقديم عرض سعر لطلب الصيانة  ${maintenance.deviceType}. التكلفة المقدرة: ${cost}`,
@@ -82,37 +88,62 @@ export async function PUT(
         recipientId: maintenance.costumerID,
       });
 
-    // Create notification for the user
-    await createNotification({
-      recipientId: maintenanceRequest.customerId,
-      senderId:technician.id ,
-      title:"تكلفة الطلب",
-      content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
-    });
+      // Create notification for the user
+      await createNotification({
+        recipientId: maintenanceRequest.customerId,
+        senderId: technician.id,
+        title: "تكلفة الطلب",
+        content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
+      });
 
-    await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-      إن تكلفة طلب الصيانة الخاص بك
-      ${maintenance.deviceType} 
-      هي ${maintenance.cost} ل.س
-      إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `)
-
-    await sendRealMail({
-      to: maintenanceRequest.user.email,
-      subject: " تكلفة طلب صيانة",
-      html: ` <div dir="rtl">
-  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
-  <b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
+      await sendRealMail({
+        to: maintenanceRequest.user.email,
+        subject: " تكلفة طلب صيانة",
+        html: ` <div dir="rtl">
+<h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+<h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+<h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
+<b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
 </div>`,
-    });
+      });
 
-    return NextResponse.json({
-      message: "تم تقديم عرض السعر بنجاح",
-      request: maintenance,
-    });
+      try {
+        await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+          إن تكلفة طلب الصيانة الخاص بك
+          ${maintenance.deviceType} 
+          هي ${maintenance.cost} ل.س
+          إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
+      } catch (error) {
+        console.log(error);
+
+        return NextResponse.json(
+          {
+            message:
+              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
+            request: maintenance,
+          },
+          { status: 200 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message: "تم تقديم عرض السعر بنجاح",
+          request: maintenance,
+        },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية" },
+        { status: 403 }
+      );
+    }
   } catch (error) {
     console.error("Error providing cost quote", error);
-    return NextResponse.json({ message: "خطأ من الخادم أم أن الطلب معلق بالفعل" }, { status: 500 | 401 });
+    return NextResponse.json(
+      { message: "خطأ من الخادم أم أن الطلب معلق بالفعل" },
+      { status: 500 | 401 }
+    );
   }
 }
