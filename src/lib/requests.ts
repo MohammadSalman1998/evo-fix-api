@@ -21,6 +21,7 @@ export async function PendingRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        status: true,
       },
     });
     return requests;
