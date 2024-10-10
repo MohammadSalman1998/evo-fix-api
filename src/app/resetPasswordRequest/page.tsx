@@ -1,4 +1,4 @@
-// src\app\reset-password-request\page.tsx
+// src\app\resetPasswordRequest\page.tsx
 
 "use client"
 import { useState } from 'react';

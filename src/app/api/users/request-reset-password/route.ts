@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const secret = process.env.JWT_SECRET + user.password; // You can include user password to invalidate old tokens if password changes
     const token = jwt.sign({ id: user.id }, secret, { expiresIn: "15m" }); // Valid for 15 minutes
 
-    const resetLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/reset-password?token=${token}&id=${user.id}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/resetPassword?token=${token}&id=${user.id}`;
 
 
     // Email options
