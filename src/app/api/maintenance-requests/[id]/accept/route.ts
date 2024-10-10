@@ -92,6 +92,14 @@ export async function PUT(
         title: "قبول تكلفة الطلب",
         content: `تم قبول عرض السعر لطلب الصيانة - ${maintenance.deviceType}`,
       });
+      
+      // Create notification for the user
+      await createNotification({
+        recipientId: maintenanceRequest.user?.id,
+        senderId: maintenanceRequest.technician.user.id,
+        title: "دفع رسوم البدء بالطلب",
+        content: `حتى يتم البدء بصيانة الجهاز- ${maintenance.deviceType} يجب دفع رسوم البدء بالطلب بقيمة ${Number(maintenance.cost) / 4}`,
+      });
 
       await sendRealMail({
         to: maintenanceRequest.technician.user.email,
@@ -101,6 +109,17 @@ export async function PUT(
       <h1>سيد/ة ${maintenanceRequest.technician.user.fullName}</h1>
       <h3> لقد تمت الموافقة على تكلفة طلب الصيانة ${maintenance.deviceType} </h3>
       <h2>يمكنك البدء بالصيانة </h2>
+    </div>`,
+      });
+
+
+      await sendRealMail({
+        to: maintenanceRequest.technician.user.email,
+        subject: "دفع رسوم البدء بالطلب",
+        html: ` <div dir="rtl">
+      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+      <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+      <h3>  حتى يتم البدء بصيانة الجهاز- ${maintenance.deviceType} يجب دفع رسوم البدء بالطلب بقيمة ${Number(maintenance.cost) / 4} </h3>
     </div>`,
       });
     }
