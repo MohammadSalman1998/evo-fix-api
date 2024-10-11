@@ -10,14 +10,20 @@ export async function createNotification({
   recipientId,
   title = "title",
   content,
-}: CreateNotificationDto): Promise<Notification> {
+  metadata = {}, 
+}: CreateNotificationDto & { metadata?: { [key: string]: string | number | boolean } }): Promise<Notification> {
   try {
+    const fullContent = JSON.stringify({
+      message: content,
+      metadata, // Include the metadata object
+    });
+
     const notification = await prisma.notification.create({
       data: {
         senderId,
         recipientId,
         title,
-        content,
+        content: fullContent,
       }
     });
 
@@ -73,14 +79,21 @@ export async function getUserNotifications(userId: number): Promise<notification
         title:true,
         content:true,
         createdAt:true,
-        isRead:true
+        isRead:true,
       },
       orderBy: { createdAt: 'desc' },
       // take: limit,
       // skip: offset
     });
 
-    return notifications;
+    return notifications.map((notification) => {
+      const parsedContent = JSON.parse(notification.content);
+      return {
+        ...notification,
+        content: parsedContent.message, // Extract the message part
+        metadata: parsedContent.metadata, // Extract metadata
+      };
+    });
   } catch (error) {
     console.error('Error fetching user notifications:', error);
     throw new Error('Failed to fetch user notifications');

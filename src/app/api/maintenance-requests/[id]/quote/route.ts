@@ -134,6 +134,9 @@ export async function PUT(
       senderId: technician.id,
       title: "تكلفة الطلب",
       content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
+      metadata: {
+        requestId: maintenanceRequest.id,  // Add metadata like requestId
+      },
     });
 
     await sendRealMail({

@@ -70,6 +70,7 @@ export interface CreateNotificationDto {
   recipientId: number;
   title?: string;
   content: string;
+  // metadata?: number,
 }
 
 export interface notificationOutDto {
