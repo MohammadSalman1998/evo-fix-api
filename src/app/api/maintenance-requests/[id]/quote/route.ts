@@ -34,14 +34,41 @@ export async function PUT(
     const { cost } = await request.json();
     const requestId = parseInt(params.id);
 
+    const maintenance = await prisma.maintenanceRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        technician: {
+          select: {
+            user: {
+              select: {
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!maintenance) {
+      return NextResponse.json(
+        { message: "هذا الطلب غير متاح" },
+        { status: 404 }
+      );
+    }
+
+    if (
+      technician.id !== maintenance?.technicianId ||
+      !maintenance.technician?.user.isActive
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية بهذا الطلب" },
+        { status: 401 }
+      );
+    }
+
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
         id: requestId,
-        technician: {
-          user: {
-            isActive: true,
-          },
-        },
         status: "ASSIGNED",
       },
       data: {
@@ -60,14 +87,7 @@ export async function PUT(
       },
     });
 
-    if (technician.id !== maintenanceRequest.technicianId) {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية بهذا الطلب" },
-        { status: 401 }
-      );
-    }
-
-    const maintenance = {
+    const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
       problemDescription: maintenanceRequest.problemDescription,
@@ -79,66 +99,59 @@ export async function PUT(
       costumerGovernorate: maintenanceRequest.user.governorate,
     };
 
-    if (maintenanceRequest) {
-      // Send email to the user
-      await sendEmail({
-        subject: "تم تقديم عرض سعر لطلب الصيانة",
-        content: `تم تقديم عرض سعر لطلب الصيانة  ${maintenance.deviceType}. التكلفة المقدرة: ${cost}`,
-        senderId: technician.id,
-        recipientId: maintenance.costumerID,
-      });
+    // Send email to the user
+    await sendEmail({
+      subject: "تم تقديم عرض سعر لطلب الصيانة",
+      content: `تم تقديم عرض سعر لطلب الصيانة  ${maintenanceData.deviceType}. التكلفة المقدرة: ${cost}`,
+      senderId: technician.id,
+      recipientId: maintenanceData.costumerID,
+    });
 
-      // Create notification for the user
-      await createNotification({
-        recipientId: maintenanceRequest.customerId,
-        senderId: technician.id,
-        title: "تكلفة الطلب",
-        content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
-      });
+    // Create notification for the user
+    await createNotification({
+      recipientId: maintenanceRequest.customerId,
+      senderId: technician.id,
+      title: "تكلفة الطلب",
+      content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
+    });
 
-      await sendRealMail({
-        to: maintenanceRequest.user.email,
-        subject: " تكلفة طلب صيانة",
-        html: ` <div dir="rtl">
+    await sendRealMail({
+      to: maintenanceRequest.user.email,
+      subject: " تكلفة طلب صيانة",
+      html: ` <div dir="rtl">
 <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
 <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-<h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenance.deviceType} هي ${maintenance.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
+<h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
 <b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
 </div>`,
-      });
+    });
 
-      try {
-        await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+    try {
+      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
           إن تكلفة طلب الصيانة الخاص بك
-          ${maintenance.deviceType} 
-          هي ${maintenance.cost} ل.س
+          ${maintenanceData.deviceType} 
+          هي ${maintenanceData.cost} ل.س
           إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
-      } catch (error) {
-        console.log(error);
-
-        return NextResponse.json(
-          {
-            message:
-              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
-            request: maintenance,
-          },
-          { status: 200 }
-        );
-      }
+    } catch (error) {
+      console.log(error);
 
       return NextResponse.json(
         {
-          message: "تم تقديم عرض السعر بنجاح",
-          request: maintenance,
+          message:
+            "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
+          request: maintenanceData,
         },
         { status: 200 }
       );
-    } else {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية" },
-        { status: 403 }
-      );
     }
+
+    return NextResponse.json(
+      {
+        message: "تم تقديم عرض السعر بنجاح",
+        request: maintenance,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error providing cost quote", error);
     return NextResponse.json(
