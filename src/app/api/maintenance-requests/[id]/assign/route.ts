@@ -53,16 +53,6 @@ export async function PUT(
       );
     }
 
-    if (
-      technician.id !== maintenance?.technicianId ||
-      !maintenance.technician?.user.isActive
-    ) {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية بهذا الطلب" },
-        { status: 403 }
-      );
-    }
-
     if(maintenance.status === "ASSIGNED"){
       return NextResponse.json(
         { message: "هذا الطلب تم استلامه بالفعل" },
