@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { message: "قم بتسجيل الدخول أولاً" },
-        { status: 401 },
+        { status: 403 },
       );
     }
     const body = await request.json() as CreateMaintenance_RequestDto;

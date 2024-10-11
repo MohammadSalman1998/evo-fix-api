@@ -21,15 +21,54 @@ export async function PUT(
     if (!technician) {
       return NextResponse.json(
         { message: "قم بتسجيل الدخول أولاً" },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     if (technician.role !== "TECHNICAL") {
-      return NextResponse.json({ message: "خاص بالتقني" }, { status: 401 });
+      return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
 
     const requestId = parseInt(params.id);
+
+    const maintenance = await prisma.maintenanceRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        technician: {
+          select: {
+            user: {
+              select: {
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!maintenance) {
+      return NextResponse.json(
+        { message: "هذا الطلب غير متاح" },
+        { status: 404 }
+      );
+    }
+
+    if (
+      technician.id !== maintenance?.technicianId ||
+      !maintenance.technician?.user.isActive
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية بهذا الطلب" },
+        { status: 403 }
+      );
+    }
+
+    if(maintenance.status === "ASSIGNED"){
+      return NextResponse.json(
+        { message: "هذا الطلب تم استلامه بالفعل" },
+        { status: 400 }
+      );
+    }
 
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
@@ -52,7 +91,7 @@ export async function PUT(
       },
     });
 
-    const maintenance = {
+    const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
       problemDescription: maintenanceRequest.problemDescription,
@@ -67,9 +106,9 @@ export async function PUT(
     // Send email to the user
     await sendEmail({
       subject: "تم تعيين تقني لطلب الصيانة الخاص بك",
-      content: `تم تعيين تقني لطلب الصيانة  ${maintenance.deviceType}. سيتم التواصل معك قريبًا.`,
+      content: `تم تعيين تقني لطلب الصيانة  ${maintenanceData.deviceType}. سيتم التواصل معك قريبًا.`,
       senderId: technician.id,
-      recipientId: maintenance.costumerID,
+      recipientId: maintenanceData.costumerID,
     });
 
     // Create notification for the user
@@ -77,7 +116,7 @@ export async function PUT(
       recipientId: maintenanceRequest.customerId,
       senderId: technician.id,
       title: "استلام الطلب",
-      content: `تم تعيين تقني لطلب الصيانة  - ${maintenance.deviceType}`,
+      content: `تم تعيين تقني لطلب الصيانة  - ${maintenanceData.deviceType}`,
     });
 
     await sendRealMail({
@@ -86,7 +125,7 @@ export async function PUT(
       html: ` <div dir="rtl">
   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h3> لقد تم تعيين تقني لطلب الصيانة ${maintenance.deviceType} </h3>
+  <h3> لقد تم تعيين تقني لطلب الصيانة ${maintenanceData.deviceType} </h3>
   <h2>سيتم إرسال الفريق التقني الى العنوان المحدد </h2>
   <b>${maintenanceRequest.address}</b>
   <b>ومن ثم سيتم تعيين وإرسال التكلفة قبل البدء</b>
@@ -95,13 +134,13 @@ export async function PUT(
 
     return NextResponse.json({
       message: "تم تعيين التقني بنجاح",
-      request: maintenance,
+      request: maintenanceData,
     });
   } catch (error) {
     console.error("Error assigning technician", error);
     return NextResponse.json(
-      { message: "خطأ من الخادم أم أن الطلب غير متاح" },
-      { status: 500 | 401 }
+      { message: "خطأ من الخادم " },
+      { status: 500 }
     );
   }
 }

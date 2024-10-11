@@ -16,4 +16,5 @@ export const ERROR_MSG = {
     message_err:"حدد الرسالة المرادة",
     problemDescription_err:"اكتب المشكلة التي تواجهها",
     deviceType_err:"حدد نوع الجهاز ",
+    cost_err: "الرجاء إدخال تكلفة الطلب"
   }

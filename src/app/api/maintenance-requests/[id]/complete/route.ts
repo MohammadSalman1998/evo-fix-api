@@ -21,15 +21,54 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (!technician) {
       return NextResponse.json(
         { message: "قم بتسجيل الدخول أولاً" },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     if (technician.role !== "TECHNICAL") {
-      return NextResponse.json({ message: "خاص بالتقني" }, { status: 401 });
+      return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
 
     const requestId = parseInt(params.id);
+
+    const maintenance = await prisma.maintenanceRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        technician: {
+          select: {
+            user: {
+              select: {
+                isActive: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!maintenance) {
+      return NextResponse.json(
+        { message: "هذا الطلب غير متاح" },
+        { status: 404 }
+      );
+    }
+
+    if (
+      technician.id !== maintenance?.technicianId ||
+      !maintenance.technician?.user.isActive
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية بهذا الطلب" },
+        { status: 403 }
+      );
+    }
+
+    if(maintenance.status === "COMPLETED"){
+      return NextResponse.json(
+        { message: "هذا الطلب تم إنجازه بالفعل" },
+        { status: 400 }
+      );
+    }
 
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
@@ -53,7 +92,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     });
 
   
-      const maintenance = {
+      const maintenanceData = {
           RequestID: maintenanceRequest.id,
           deviceType: maintenanceRequest.deviceType,
           problemDescription: maintenanceRequest.problemDescription,
@@ -68,26 +107,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Send email to the user
     await sendEmail({
       subject: "تم إكمال طلب الصيانة",
-      content: `تم إكمال طلب الصيانة  ${maintenance.deviceType}. يرجى دفع الرسوم ${maintenance.cost} ل.س لاستلام الجهاز.`,
+      content: `تم إكمال طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم ${maintenanceData.cost} ل.س لاستلام الجهاز.`,
       senderId: technician.id,
-      recipientId: maintenance.costumerID
+      recipientId: maintenanceData.costumerID
     });
 
     // Create notification for the user
     await createNotification({
-      recipientId: maintenance.costumerID,
+      recipientId: maintenanceData.costumerID,
       senderId:technician.id,
       title: "إنجاز الطلب",
-      content: `تم إكمال طلب الصيانة  ${maintenance.deviceType}. يرجى دفع الرسوم ${maintenance.cost} ل.س لاستلام الجهاز.`,
+      content: `تم إكمال طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم ${maintenanceData.cost} ل.س لاستلام الجهاز.`,
     });
-
-    await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-      إن  طلب الصيانة الخاص بك
-      ${maintenance.deviceType}
-      تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
-      ${maintenance.cost} ل.س
-      `)
-
 
     await sendRealMail({
       to: maintenanceRequest.user.email,
@@ -95,15 +126,36 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       html: ` <div dir="rtl">
   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h3> لقد تم الانتهاء من طلب الصيانة ${maintenance.deviceType} </h3>
+  <h3> لقد تم الانتهاء من طلب الصيانة ${maintenanceData.deviceType} </h3>
   <h2>سيتم إرسال الفريق التقني الى العنوان بعد أن تستكمل دفع الرسوم </h2>
   <b>${maintenanceRequest.address}</b>
 </div>`,
     });
 
-    return NextResponse.json({ message: "تم إكمال طلب الصيانة بنجاح", request: maintenance });
+    try {
+      
+      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+        إن  طلب الصيانة الخاص بك
+        ${maintenanceData.deviceType}
+        تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
+        ${maintenanceData.cost} ل.س
+        `)
+      } catch (error) {
+        console.log(error);
+  
+        return NextResponse.json(
+          {
+            message:
+              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم إنجاز الطلب بنجاح ",
+            request: maintenanceData,
+          },
+          { status: 200 }
+        );
+      }
+
+    return NextResponse.json({ message: "تم إنجاز طلب الصيانة بنجاح", request: maintenanceData });
   } catch (error) {
     console.error("Error completing maintenance request", error);
-    return NextResponse.json({ message: "خطأ من الخادم أم أن الطلب تم إنجازه من قبل" }, { status: 500 | 401 });
+    return NextResponse.json({ message: "خطأ من الخادم " }, { status: 500 });
   }
 }

@@ -7,6 +7,7 @@ import { createNotification } from "@/lib/notification";
 import { sendEmail, sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
 import { sendSms } from "@/lib/sms";
+import { CostSchema } from "@/utils/validationSchemas";
 
 /**
  *  @method PUT
@@ -14,6 +15,11 @@ import { sendSms } from "@/lib/sms";
  *  @desc   Provide a cost quote for a maintenance request
  *  @access private (technician)
  */
+
+
+interface costDto{
+  cost: number;
+}
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -23,15 +29,15 @@ export async function PUT(
     if (!technician) {
       return NextResponse.json(
         { message: "قم بتسجيل الدخول أولاً" },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
     if (technician.role !== "TECHNICAL") {
-      return NextResponse.json({ message: "خاص بالتقني" }, { status: 401 });
+      return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
 
-    const { cost } = await request.json();
+    const  cost  = (await request.json()) as costDto;
     const requestId = parseInt(params.id);
 
     const maintenance = await prisma.maintenanceRequest.findUnique({
@@ -62,7 +68,22 @@ export async function PUT(
     ) {
       return NextResponse.json(
         { message: "ليس لديك الصلاحية بهذا الطلب" },
-        { status: 401 }
+        { status: 403 }
+      );
+    }
+
+    if(maintenance.status === "QUOTED"){
+      return NextResponse.json(
+        { message: "هذا الطلب معلق بالفعل" },
+        { status: 400 }
+      );
+    }
+
+    const validate = CostSchema.safeParse(cost)
+    if(!validate.success){
+      return NextResponse.json(
+        { message: validate.error.errors[0].message },
+        { status: 400 }
       );
     }
 
@@ -72,7 +93,7 @@ export async function PUT(
         status: "ASSIGNED",
       },
       data: {
-        cost: cost,
+        cost: cost.cost,
         status: RequestStatus.QUOTED,
       },
       include: {
@@ -148,15 +169,15 @@ export async function PUT(
     return NextResponse.json(
       {
         message: "تم تقديم عرض السعر بنجاح",
-        request: maintenance,
+        request: maintenanceData,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error providing cost quote", error);
     return NextResponse.json(
-      { message: "خطأ من الخادم أم أن الطلب معلق بالفعل" },
-      { status: 500 | 401 }
+      { message: "خطأ من الخادم" },
+      { status: 500  }
     );
   }
 }
