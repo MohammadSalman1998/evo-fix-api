@@ -87,11 +87,23 @@ export async function getUserNotifications(userId: number): Promise<notification
     });
 
     return notifications.map((notification) => {
-      const parsedContent = JSON.parse(notification.content);
+      let parsedContent;
+    
+      // Safely parse the content with error handling
+      try {
+        parsedContent = JSON.parse(notification.content);
+      } catch (error) {
+        console.error('Error parsing notification content:', error);
+        parsedContent = {
+          message: notification.content,  // Fall back to the raw content if JSON parsing fails
+          metadata: {},                   // Use an empty object for metadata if not present
+        };
+      }
+    
       return {
         ...notification,
-        content: parsedContent.message, // Extract the message part
-        metadata: parsedContent.metadata, // Extract metadata
+        content: parsedContent.message || notification.content,  // Use parsed message or original content
+        metadata: parsedContent.metadata || {},  // Use parsed metadata or empty object
       };
     });
   } catch (error) {
