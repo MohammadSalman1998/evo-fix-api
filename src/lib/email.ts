@@ -63,32 +63,26 @@ export async function contactUs({
 
 // Sender Endpoints
 // export async function getSentEmails(userId: number, limit: number = 10, offset: number = 0): Promise<SentEmailOutDto[]> {
-// export async function getSentEmails(userId: number): Promise<SentEmailOutDto[]> {
-//   try {
-//     const emails = await prisma.email.findMany({
-//       where: { senderId: userId },
-//       select: {
-//         id: true,
-//         subject: true,
-//         content: true,
-//         recipient:{
-//           select:{
-//             fullName:true,
-//             address:true
-//           }
-//         },
-//         sentAt: true,
-//       },
-//       orderBy: { sentAt: 'desc' },
-//       // take: limit,
-//       // skip: offset
-//     });
-//     return emails;
-//   } catch (error) {
-//     console.error('Error fetching sent emails:', error);
-//     throw new Error('Failed to fetch sent emails');
-//   }
-// }
+export async function getAllContactUsEmails() {
+  try {
+    const allContactUs = await prisma.email.findMany({
+      select: {
+        id: true,
+        email:true,
+        subject: true,
+        content: true,
+        sentAt: true,
+      },
+      orderBy: { sentAt: 'desc' },
+      // take: limit,
+      // skip: offset
+    });
+    return allContactUs;
+  } catch (error) {
+    console.error('Error fetching sent emails:', error);
+    throw new Error('Failed to fetch sent emails');
+  }
+}
 
 // Recipient  Endpoints
 // export async function getRecipientEmails(userId: number, limit: number = 10, offset: number = 0): Promise<RecipientEmailOutDto[]> {
