@@ -73,3 +73,41 @@ export async function createReview({
       throw new Error("Failed to get all reviews By Governorate");
     }
   }
+
+export async function updateReviewActive(id: number){
+  try {
+    const updateReview = await prisma.review.update({
+      where:{id},
+     data:{
+      isActive:true
+     }
+    });
+
+    return updateReview;
+  } catch (error) {
+    console.error("Error update review:", error);
+    throw new Error("Failed to update review");
+  }
+}
+
+export async function getAllReviewsActive(){
+  try {
+    const AllReviews = await prisma.review.findMany({
+      where:{isActive:true},
+      select: {
+        rating:true,
+        comment:true,
+        user:{
+          select:{
+              fullName:true,
+          }
+        }
+      },
+    });
+
+    return AllReviews;
+  } catch (error) {
+    console.error("Error get all reviews:", error);
+    throw new Error("Failed to get all reviews");
+  }
+}

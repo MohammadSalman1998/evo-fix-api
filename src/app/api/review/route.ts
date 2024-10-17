@@ -1,8 +1,10 @@
 // src\app\api\review\route.ts
 
+import { createNotification } from "@/lib/notification";
 import {
   createReview,
   getAllReviews,
+  getAllReviewsActive,
   getAllReviewsByGovernorate,
 } from "@/lib/review";
 import prisma from "@/utils/db";
@@ -26,6 +28,8 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+
+    const admin = await prisma.user.findFirst({where:{role:"ADMIN"}})
     const body = (await request.json()) as createReviewDto;
     const reviewData: createReviewDto = {
       userId: account.id,
@@ -33,6 +37,13 @@ export async function POST(request: NextRequest) {
       comment: body.comment,
     };
     const review = await createReview(reviewData);
+
+    await createNotification({
+      senderId: account.id,
+      recipientId: admin?.id || 0,
+      title:"تقييم جديد",
+      content:`تقييم جديد باسم: "${account.fullName}" - درجة التقييم: "${review.rating}" - التعليق: "${review.comment}"`
+    })
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
@@ -84,9 +95,11 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ subAdminReviews }, { status: 200 });
     }
+
+    const allReviews = await getAllReviewsActive()
     return NextResponse.json(
-      { messasge: "ليس لديك الصلاحية" },
-      { status: 403 }
+      { allReviews },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching Reviews", error);

@@ -92,9 +92,9 @@ export interface MailOptionsDto {
 }
 
 export interface CreateEmailDto {
+  email: string;
   subject: string;
   content: string;
-  senderId: number;
   recipientId: number;
 }
 

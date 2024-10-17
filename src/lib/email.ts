@@ -1,8 +1,8 @@
 // src\lib\email.ts
-// import prisma from "@/utils/db";
 // import { CreateEmailDto,SentEmailOutDto,RecipientEmailOutDto,EmailOutDto, MailOptionsDto } from "@/utils/dtos";
-import { MailOptionsDto } from "@/utils/dtos";
-// import { Email } from "@prisma/client";
+import prisma from "@/utils/db";
+import { MailOptionsDto,CreateEmailDto } from "@/utils/dtos";
+import { Email } from "@prisma/client";
 import nodemailer from 'nodemailer';
 
 // Create a transporter object using Gmail's SMTP server
@@ -38,29 +38,28 @@ export async function sendRealMail({ to , subject, text, html,requestId }: MailO
 }
 
 
+export async function contactUs({
+  email,
+  subject,
+  content,
+  recipientId,
+}: CreateEmailDto): Promise<Email> {
+  try {
+    const contactUsEmail = await prisma.email.create({
+      data: {
+        email,
+        subject,
+        content,
+        recipientId,
+      },
+    });
 
-// export async function sendEmail({
-//   subject,
-//   content,
-//   senderId,
-//   recipientId,
-// }: CreateEmailDto): Promise<Email> {
-//   try {
-//     const email = await prisma.email.create({
-//       data: {
-//         subject,
-//         content,
-//         senderId,
-//         recipientId,
-//       },
-//     });
-
-//     return email;
-//   } catch (error) {
-//     console.error("Error creating email:", error);
-//     throw new Error("Failed to create email");
-//   }
-// }
+    return contactUsEmail;
+  } catch (error) {
+    console.error("Error creating email of contact us:", error);
+    throw new Error("Failed to create email of contact us");
+  }
+}
 
 // Sender Endpoints
 // export async function getSentEmails(userId: number, limit: number = 10, offset: number = 0): Promise<SentEmailOutDto[]> {
