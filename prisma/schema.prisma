@@ -159,7 +159,18 @@ model services {
   title    String
   isActive Boolean  @default(true)
   createAt DateTime @default(now())
+
+  // DevicesModels DevicesModels[]
 }
+
+// model DevicesModels{
+//   id  Int @id @default(autoincrement())
+//   serviceID Int
+//   title   String
+//   isActive  Boolean @default(true)
+//   createAt DateTime @default(now())
+//   services  services @relation(fields: [serviceID], references: [id])
+// }
 
 enum Role {
   ADMIN

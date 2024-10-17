@@ -63,7 +63,7 @@ export async function PUT(
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
         id: requestId,
-        status: "QUOTED",
+        status: "PENDING",
       },
       data: {
         technicianId: technician.id,
