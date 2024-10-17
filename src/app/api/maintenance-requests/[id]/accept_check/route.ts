@@ -37,7 +37,7 @@ export async function POST(
         id: requestId,
         isPaidCheckFee: false,
         isPaid: false,
-        status: "QUOTED",
+        status: "ASSIGNED",
       },
       include: {
         user: {
@@ -107,7 +107,7 @@ export async function POST(
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
         id: requestId,
-        status: "QUOTED",
+        status: "ASSIGNED",
         customerId: user.id,
       },
       data: {
