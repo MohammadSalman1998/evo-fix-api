@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 
 interface NotificationData_data {
     recipientId: number;
+    requestId: number;
     title: string;
     content: string;
     createdAt: Date

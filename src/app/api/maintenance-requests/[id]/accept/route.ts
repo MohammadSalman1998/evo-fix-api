@@ -4,7 +4,9 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
+import { createInvoice } from "@/lib/invoice";
+import { newInvoice } from "@/utils/dtos";
 
 /**
  *  @method PUT
@@ -12,10 +14,7 @@ import { sendEmail, sendRealMail } from "@/lib/email";
  *  @desc   Accept the cost quote for a maintenance request
  *  @access private (user)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = verifyToken(request);
     if (!user) {
@@ -98,42 +97,52 @@ export async function PUT(
     const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
+      deviceModel: maintenanceRequest.deviceModel,
       problemDescription: maintenanceRequest.problemDescription,
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
+      isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
       costumerGovernorate: maintenanceRequest.user.governorate,
     };
 
+    const date_time = new Date();
+
+    const invoiceData: newInvoice ={
+      userId: user.id,
+      requestId: requestId,
+      amount: maintenance.cost || 0 ,
+      issueDate:  date_time,
+      dueDate: date_time,
+      isPaid: false,
+    } 
+
+   const invoice = await createInvoice(invoiceData)
+
     // Send email to the technician
     if (maintenanceRequest.technician && maintenanceRequest.technician.user) {
       
-      await sendEmail({
-        subject: "تم قبول عرض السعر للصيانة",
-        content: `تم قبول عرض السعر لطلب الصيانة  ${maintenanceData.deviceType}. يمكنك البدء في العمل.`,
-        senderId: user.id,
-        recipientId: maintenanceRequest.technician.user.id,
-      });
 
       // Create notification for the technician
       await createNotification({
         recipientId: maintenanceRequest.technician?.user.id,
         senderId: user.id,
         title: "قبول تكلفة الطلب",
-        content: `تم قبول عرض السعر لطلب الصيانة - ${maintenanceData.deviceType}`,
+        content: `تم قبول عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} - يمكنك البدء بالصيانة`,
+        requestId: maintenanceRequest.id
       });
 
       // Create notification for the user
-      await createNotification({
-        recipientId: maintenanceRequest.user?.id,
-        senderId: maintenanceRequest.technician.user.id,
-        title: "دفع رسوم البدء بالطلب",
-        content: `حتى يتم البدء بصيانة الجهاز- ${
-          maintenanceData.deviceType
-        } يجب دفع رسوم البدء بالطلب بقيمة ${Number(maintenanceData.cost) / 4}`,
-      });
+      // await createNotification({
+      //   recipientId: maintenanceRequest.user?.id,
+      //   senderId: maintenanceRequest.technician.user.id,
+      //   title: "دفع رسوم البدء بالطلب",
+      //   content: `حتى يتم البدء بصيانة الجهاز- ${
+      //     maintenanceData.deviceType
+      //   } يجب دفع رسوم البدء بالطلب بقيمة ${Number(maintenanceData.cost) / 4}`,
+      // });
 
       await sendRealMail({
         to: maintenanceRequest.technician.user.email,
@@ -146,24 +155,25 @@ export async function PUT(
     </div>`,
       });
 
-      await sendRealMail({
-        to: maintenanceRequest.technician.user.email,
-        subject: "دفع رسوم البدء بالطلب",
-        html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-      <h3>  حتى يتم البدء بصيانة الجهاز- ${
-        maintenanceData.deviceType
-      } يجب دفع رسوم البدء بالطلب بقيمة ${
-          Number(maintenanceData.cost) / 4
-        } </h3>
-    </div>`,
-      });
+    //   await sendRealMail({
+    //     to: maintenanceRequest.technician.user.email,
+    //     subject: "دفع رسوم البدء بالطلب",
+    //     html: ` <div dir="rtl">
+    //   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+    //   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+    //   <h3>  حتى يتم البدء بصيانة الجهاز- ${
+    //     maintenanceData.deviceType
+    //   } يجب دفع رسوم البدء بالطلب بقيمة ${
+    //       Number(maintenanceData.cost) / 4
+    //     } </h3>
+    // </div>`,
+    //   });
     }
 
     return NextResponse.json({
       message: "تم قبول عرض السعر بنجاح",
       request: maintenanceData,
+      invoice
     });
   } catch (error) {
     console.error("Error accepting cost quote", error);

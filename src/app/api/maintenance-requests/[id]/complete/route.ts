@@ -5,7 +5,7 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
 import { sendSms } from "@/lib/sms";
 
 
@@ -95,29 +95,23 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       const maintenanceData = {
           RequestID: maintenanceRequest.id,
           deviceType: maintenanceRequest.deviceType,
+          deviceModel: maintenanceRequest.deviceModel,
           problemDescription: maintenanceRequest.problemDescription,
           cost: maintenanceRequest.cost,
           isPaid: maintenanceRequest.isPaid,
+          isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
           status: maintenanceRequest.status,
           costumerID: maintenanceRequest.user.id,
           costumerName: maintenanceRequest.user.fullName,
           costumerGovernorate: maintenanceRequest.user.governorate,
       }
-
-    // Send email to the user
-    await sendEmail({
-      subject: "تم إكمال طلب الصيانة",
-      content: `تم إكمال طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم ${maintenanceData.cost} ل.س لاستلام الجهاز.`,
-      senderId: technician.id,
-      recipientId: maintenanceData.costumerID
-    });
-
     // Create notification for the user
     await createNotification({
       recipientId: maintenanceData.costumerID,
       senderId:technician.id,
       title: "إنجاز الطلب",
       content: `تم إكمال طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم ${maintenanceData.cost} ل.س لاستلام الجهاز.`,
+      requestId: maintenanceRequest.id
     });
 
     await sendRealMail({
@@ -127,8 +121,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
   <h3> لقد تم الانتهاء من طلب الصيانة ${maintenanceData.deviceType} </h3>
-  <h2>سيتم إرسال الفريق التقني الى العنوان بعد أن تستكمل دفع الرسوم </h2>
-  <b>${maintenanceRequest.address}</b>
+  <h2>سيتم إرسال الفريق التقني الى العنوان التالي بعد أن تستكمل دفع الرسوم : "${maintenanceData.cost}" ل.س </h2>
+  <h3>${maintenanceRequest.address}</h3>
 </div>`,
     });
 

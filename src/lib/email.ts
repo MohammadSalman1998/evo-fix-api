@@ -1,7 +1,8 @@
 // src\lib\email.ts
-import prisma from "@/utils/db";
-import { CreateEmailDto,SentEmailOutDto,RecipientEmailOutDto,EmailOutDto, MailOptionsDto } from "@/utils/dtos";
-import { Email } from "@prisma/client";
+// import prisma from "@/utils/db";
+// import { CreateEmailDto,SentEmailOutDto,RecipientEmailOutDto,EmailOutDto, MailOptionsDto } from "@/utils/dtos";
+import { MailOptionsDto } from "@/utils/dtos";
+// import { Email } from "@prisma/client";
 import nodemailer from 'nodemailer';
 
 // Create a transporter object using Gmail's SMTP server
@@ -16,7 +17,7 @@ const transporter = nodemailer.createTransport({
 
 
 // Function to send mail with dynamic values
-export async function sendRealMail({ to, subject, text, html }: MailOptionsDto): Promise<void> {
+export async function sendRealMail({ to , subject, text, html,requestId }: MailOptionsDto): Promise<void> {
   // Create dynamic mailOptions
   const mailOptions = {
     from: process.env.GOOGLE_EMAIL_APP_EVOFIX, // Sender address from env
@@ -24,6 +25,7 @@ export async function sendRealMail({ to, subject, text, html }: MailOptionsDto):
     subject, // Subject (passed as an argument)
     text: text || '', // Plain text body (optional)
     html: html || '', // HTML body (optional)
+    requestId: requestId || 0
   };
 
   try {
@@ -37,165 +39,165 @@ export async function sendRealMail({ to, subject, text, html }: MailOptionsDto):
 
 
 
-export async function sendEmail({
-  subject,
-  content,
-  senderId,
-  recipientId,
-}: CreateEmailDto): Promise<Email> {
-  try {
-    const email = await prisma.email.create({
-      data: {
-        subject,
-        content,
-        senderId,
-        recipientId,
-      },
-    });
+// export async function sendEmail({
+//   subject,
+//   content,
+//   senderId,
+//   recipientId,
+// }: CreateEmailDto): Promise<Email> {
+//   try {
+//     const email = await prisma.email.create({
+//       data: {
+//         subject,
+//         content,
+//         senderId,
+//         recipientId,
+//       },
+//     });
 
-    return email;
-  } catch (error) {
-    console.error("Error creating email:", error);
-    throw new Error("Failed to create email");
-  }
-}
+//     return email;
+//   } catch (error) {
+//     console.error("Error creating email:", error);
+//     throw new Error("Failed to create email");
+//   }
+// }
 
 // Sender Endpoints
 // export async function getSentEmails(userId: number, limit: number = 10, offset: number = 0): Promise<SentEmailOutDto[]> {
-export async function getSentEmails(userId: number): Promise<SentEmailOutDto[]> {
-  try {
-    const emails = await prisma.email.findMany({
-      where: { senderId: userId },
-      select: {
-        id: true,
-        subject: true,
-        content: true,
-        recipient:{
-          select:{
-            fullName:true,
-            address:true
-          }
-        },
-        sentAt: true,
-      },
-      orderBy: { sentAt: 'desc' },
-      // take: limit,
-      // skip: offset
-    });
-    return emails;
-  } catch (error) {
-    console.error('Error fetching sent emails:', error);
-    throw new Error('Failed to fetch sent emails');
-  }
-}
+// export async function getSentEmails(userId: number): Promise<SentEmailOutDto[]> {
+//   try {
+//     const emails = await prisma.email.findMany({
+//       where: { senderId: userId },
+//       select: {
+//         id: true,
+//         subject: true,
+//         content: true,
+//         recipient:{
+//           select:{
+//             fullName:true,
+//             address:true
+//           }
+//         },
+//         sentAt: true,
+//       },
+//       orderBy: { sentAt: 'desc' },
+//       // take: limit,
+//       // skip: offset
+//     });
+//     return emails;
+//   } catch (error) {
+//     console.error('Error fetching sent emails:', error);
+//     throw new Error('Failed to fetch sent emails');
+//   }
+// }
 
 // Recipient  Endpoints
 // export async function getRecipientEmails(userId: number, limit: number = 10, offset: number = 0): Promise<RecipientEmailOutDto[]> {
-export async function getRecipientEmails(userId: number): Promise<RecipientEmailOutDto[]> {
-  try {
-    const emails = await prisma.email.findMany({
-      where: { recipientId: userId },
-      select: {
-        id: true,
-        subject: true,
-        content: true,
-        sender:{
-          select:{
-            fullName:true,
-            address:true
-          }
-        },
-        sentAt: true,
-      },
-      orderBy: { sentAt: 'desc' },
-      // take: limit,
-      // skip: offset
-    });
-    return emails;
-  } catch (error) {
-    console.error('Error fetching sent emails:', error);
-    throw new Error('Failed to fetch sent emails');
-  }
-}
+// export async function getRecipientEmails(userId: number): Promise<RecipientEmailOutDto[]> {
+//   try {
+//     const emails = await prisma.email.findMany({
+//       where: { recipientId: userId },
+//       select: {
+//         id: true,
+//         subject: true,
+//         content: true,
+//         sender:{
+//           select:{
+//             fullName:true,
+//             address:true
+//           }
+//         },
+//         sentAt: true,
+//       },
+//       orderBy: { sentAt: 'desc' },
+//       // take: limit,
+//       // skip: offset
+//     });
+//     return emails;
+//   } catch (error) {
+//     console.error('Error fetching sent emails:', error);
+//     throw new Error('Failed to fetch sent emails');
+//   }
+// }
 
-// Admin Endpoints
-// export async function getAllEmails(limit: number = 10, offset: number = 0): Promise<EmailOutDto[]> {
-export async function getAllEmails(): Promise<EmailOutDto[]> {
-  try {
-    const emails = await prisma.email.findMany({
-      select: {
-        id: true,
-        subject: true,
-        content: true,
-        sender:{
-          select:{
-            fullName:true,
-            email:true
-          }
-        },
-        recipient:{
-          select:{
-            fullName:true,
-            email:true
-          }
-        },
-        sentAt: true,
-      },
-      orderBy: { sentAt: 'desc' },
-      // take: limit,
-      // skip: offset
-    });
-    return emails;
-  } catch (error) {
-    console.error('Error fetching all emails:', error);
-    throw new Error('Failed to fetch all emails');
-  }
-}
+// // Admin Endpoints
+// // export async function getAllEmails(limit: number = 10, offset: number = 0): Promise<EmailOutDto[]> {
+// export async function getAllEmails(): Promise<EmailOutDto[]> {
+//   try {
+//     const emails = await prisma.email.findMany({
+//       select: {
+//         id: true,
+//         subject: true,
+//         content: true,
+//         sender:{
+//           select:{
+//             fullName:true,
+//             email:true
+//           }
+//         },
+//         recipient:{
+//           select:{
+//             fullName:true,
+//             email:true
+//           }
+//         },
+//         sentAt: true,
+//       },
+//       orderBy: { sentAt: 'desc' },
+//       // take: limit,
+//       // skip: offset
+//     });
+//     return emails;
+//   } catch (error) {
+//     console.error('Error fetching all emails:', error);
+//     throw new Error('Failed to fetch all emails');
+//   }
+// }
 
-// Sub-Admin Endpoints
-// export async function getAllEmails(limit: number = 10, offset: number = 0): Promise<EmailOutDto[]> {
-export async function getAllEmailsByGovernorate(governorate: string): Promise<EmailOutDto[]> {
-  try {
-    const emails = await prisma.email.findMany({
-      where: {
-        OR: [
-          {
-            sender: {
-              governorate: governorate
-            }
-          },
-          {
-            recipient: {
-              governorate: governorate
-            }
-          }
-        ]
-      },
-      select: {
-        id: true,
-        subject: true,
-        content: true,
-        sender:{
-          select:{
-            fullName:true,
-            email:true
-          }
-        },
-        recipient:{
-          select:{
-            fullName:true,
-            email:true
-          }
-        },
-        sentAt: true,
-      },
-      orderBy: { sentAt: 'desc' },
-      // take: limit,
-      // skip: offset
-    });
-    return emails;
-  } catch (error) {
-    console.error('Error fetching all emails:', error);
-    throw new Error('Failed to fetch all emails');
-  }
-}
+// // Sub-Admin Endpoints
+// // export async function getAllEmails(limit: number = 10, offset: number = 0): Promise<EmailOutDto[]> {
+// export async function getAllEmailsByGovernorate(governorate: string): Promise<EmailOutDto[]> {
+//   try {
+//     const emails = await prisma.email.findMany({
+//       where: {
+//         OR: [
+//           {
+//             sender: {
+//               governorate: governorate
+//             }
+//           },
+//           {
+//             recipient: {
+//               governorate: governorate
+//             }
+//           }
+//         ]
+//       },
+//       select: {
+//         id: true,
+//         subject: true,
+//         content: true,
+//         sender:{
+//           select:{
+//             fullName:true,
+//             email:true
+//           }
+//         },
+//         recipient:{
+//           select:{
+//             fullName:true,
+//             email:true
+//           }
+//         },
+//         sentAt: true,
+//       },
+//       orderBy: { sentAt: 'desc' },
+//       // take: limit,
+//       // skip: offset
+//     });
+//     return emails;
+//   } catch (error) {
+//     console.error('Error fetching all emails:', error);
+//     throw new Error('Failed to fetch all emails');
+//   }
+// }

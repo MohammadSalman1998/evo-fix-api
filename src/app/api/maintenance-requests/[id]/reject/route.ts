@@ -4,7 +4,7 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import {sendRealMail } from "@/lib/email";
 
 /**
  *  @method PUT
@@ -95,9 +95,11 @@ export async function PUT(
     const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
+      deviceModel: maintenanceRequest.deviceModel,
       problemDescription: maintenanceRequest.problemDescription,
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
+      isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
@@ -113,12 +115,6 @@ export async function PUT(
 
     // Send email to the technician
     if (maintenanceRequest.technician && maintenanceRequest.technician.user) {
-      await sendEmail({
-        subject: "تم رفض عرض السعر للصيانة",
-        content: `تم رفض عرض السعر لطلب الصيانة  ${maintenanceData.deviceType}. متى يمكنني استرجاع القطعة؟`,
-        senderId: user.id,
-        recipientId: maintenanceRequest.technician.user.id,
-      });
 
       // Create notification for the technician
       await createNotification({
@@ -126,6 +122,7 @@ export async function PUT(
         senderId: user.id,
         title: "رفض تكلفة الطلب",
         content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType}`,
+        requestId: maintenanceRequest.id
       });
 
       await sendRealMail({

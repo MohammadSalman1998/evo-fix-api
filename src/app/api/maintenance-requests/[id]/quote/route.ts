@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
 import { sendSms } from "@/lib/sms";
 import { CostSchema } from "@/utils/validationSchemas";
@@ -111,32 +111,24 @@ export async function PUT(
     const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
+      deviceModel: maintenanceRequest.deviceModel,
       problemDescription: maintenanceRequest.problemDescription,
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
+      isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
       costumerGovernorate: maintenanceRequest.user.governorate,
     };
 
-    // Send email to the user
-    await sendEmail({
-      subject: "تم تقديم عرض سعر لطلب الصيانة",
-      content: `تم تقديم عرض سعر لطلب الصيانة  ${maintenanceData.deviceType}. التكلفة المقدرة: ${cost}`,
-      senderId: technician.id,
-      recipientId: maintenanceData.costumerID,
-    });
-
     // Create notification for the user
     await createNotification({
       recipientId: maintenanceRequest.customerId,
       senderId: technician.id,
       title: "تكلفة الطلب",
-      content: `إن تكلفة الصيانة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟`,
-      metadata: {
-        requestId: maintenanceRequest.id,  // Add metadata like requestId
-      },
+      content: `إن التكلفة المقدرة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة  ؟`,
+      requestId: maintenanceRequest.id
     });
 
     await sendRealMail({
@@ -145,7 +137,7 @@ export async function PUT(
       html: ` <div dir="rtl">
 <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
 <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-<h2> إن تكلفة الصيانة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة أم لا ؟  </h2>
+<h2> إن التكلفة المقدرة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة ؟  </h2>
 <b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
 </div>`,
     });

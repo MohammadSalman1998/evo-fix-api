@@ -36,7 +36,9 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
             phoneNO:true,
             address:true,
             problemDescription:true,
-            deviceType:true
+            deviceType:true,
+            deviceModel: true,
+            deviceImage: true
         }
     })
 
@@ -61,6 +63,8 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
         phoneNO: oldRequest.phoneNO,
         address: oldRequest.address,
         deviceType: oldRequest.deviceType,
+        deviceModel: oldRequest.deviceModel,
+        deviceImage: oldRequest.deviceImage,
         problemDescription: oldRequest.problemDescription,
       },
     });

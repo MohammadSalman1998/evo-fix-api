@@ -1,6 +1,6 @@
 // src\utils\dtos.ts
 
-import { Role } from "@prisma/client";
+import { Role, typeEpaid } from "@prisma/client";
 
 export interface CreateServiceDto {
   icon?: JSX.Element;
@@ -59,6 +59,8 @@ export interface UpdateUserDto {
 
 export interface CreateMaintenance_RequestDto {
   deviceType: string;
+  deviceModel: string;
+  deviceImage?: File;
   governorate: string;
   phoneNO: string;
   address: string;
@@ -70,6 +72,7 @@ export interface CreateNotificationDto {
   recipientId: number;
   title?: string;
   content: string;
+  requestId?: number;
   // metadata?: number,
 }
 
@@ -77,6 +80,7 @@ export interface notificationOutDto {
   title: string;
   content: string;
   createdAt: Date;
+  // requestId?:number;
 }
 
 export interface MailOptionsDto {
@@ -84,10 +88,10 @@ export interface MailOptionsDto {
   subject: string;
   text?: string; // Plain text body (optional)
   html?: string; // HTML body (optional)
+  requestId?: number;
 }
 
-
-export interface CreateEmailDto{
+export interface CreateEmailDto {
   subject: string;
   content: string;
   senderId: number;
@@ -97,7 +101,7 @@ export interface CreateEmailDto{
 export interface RecipientSentDto {
   fullName: string;
   // email: string;
-  address:string;
+  address: string;
 }
 export interface RecipientSentAdminDto {
   fullName: string;
@@ -125,4 +129,46 @@ export interface EmailOutDto {
   sender: RecipientSentAdminDto;
   recipient: RecipientSentAdminDto;
   sentAt: Date;
+}
+
+export interface NewEpaid {
+  senderId: number;
+  requestId: number;
+  OperationNumber: bigint | number;
+  amount?: number;
+  CheckFee?: number;
+  textMessage: string;
+  typePaid: typeEpaid;
+}
+
+export interface newLocalSMS {
+  content: string;
+  senderId: number;
+  recipientId: number;
+  requestId?: number | null;
+  operationNumber?: bigint | number | null;
+  amount?: number;
+  typePaid: typeEpaid;
+}
+
+export interface newInvoice {
+  userId: number;
+  requestId: number;
+  amount: number;
+  issueDate: Date  ;
+  dueDate: Date;
+  isPaid: boolean;
+  paidAt?: Date;
+}
+export interface updateinvoice {
+  requestId: number;
+  dueDate: Date;
+  isPaid: boolean;
+  paidAt?: Date;
+}
+
+export interface createReviewDto {
+  userId: number;
+  rating: number;
+  comment: string;
 }

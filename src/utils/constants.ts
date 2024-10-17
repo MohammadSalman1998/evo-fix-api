@@ -16,5 +16,10 @@ export const ERROR_MSG = {
     message_err:"حدد الرسالة المرادة",
     problemDescription_err:"اكتب المشكلة التي تواجهها",
     deviceType_err:"حدد نوع الجهاز ",
-    cost_err: "الرجاء إدخال تكلفة الطلب"
+    deviceModel_err:"حدد موديل الجهاز ",
+    cost_err: "الرجاء إدخال تكلفة الطلب",
+    OperationNumber_err: "الرجاء إدخال  رقم عملية الدفع",
+    amount_err: "الرجاء إدخال قيمة المبلغ المدفوع",
+    textMessage_err: "الرجاء نسخ نص رسالة التحويل",
+    typePaid_err: "الرجاء تحديد طريقة الدفع",
   }

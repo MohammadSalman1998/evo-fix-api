@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
 import { Role } from "@prisma/client";
 
 /**
@@ -133,13 +133,7 @@ export async function DELETE(
 
     // Send email to the technician
     if (maintenanceRequest.technician && maintenanceRequest.technician.user) {
-      await sendEmail({
-        subject: "تم حذف طلبك ",
-        content: `تم حذف الطلب من قائمة الطلبات  ${maintenance.deviceType}`,
-        senderId: user.id,
-        recipientId: maintenanceRequest.customerId,
-      });
-
+    
       // Create notification for the technician
       await createNotification({
         recipientId: maintenanceRequest.technician?.user.id,

@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
 
     const token = generateJWT(tokenPayload);
 
-
     return NextResponse.json(
       {
         message: "تمت عملية الدخول بنجاح",

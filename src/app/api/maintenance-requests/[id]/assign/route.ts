@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
-import { sendEmail, sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
 
 /**
@@ -63,7 +63,7 @@ export async function PUT(
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
         id: requestId,
-        status: "PENDING",
+        status: "QUOTED",
       },
       data: {
         technicianId: technician.id,
@@ -84,29 +84,32 @@ export async function PUT(
     const maintenanceData = {
       RequestID: maintenanceRequest.id,
       deviceType: maintenanceRequest.deviceType,
+      deviceModel: maintenanceRequest.deviceModel,
       problemDescription: maintenanceRequest.problemDescription,
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
+      isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
       costumerGovernorate: maintenanceRequest.user.governorate,
     };
 
-    // Send email to the user
-    await sendEmail({
-      subject: "تم تعيين تقني لطلب الصيانة الخاص بك",
-      content: `تم تعيين تقني لطلب الصيانة  ${maintenanceData.deviceType}. سيتم التواصل معك قريبًا.`,
-      senderId: technician.id,
-      recipientId: maintenanceData.costumerID,
-    });
+     const notificationNewOrderData = {
+      title: "طلب صيانة جديد",
+      deviceType: `نوع الجهاز: ${maintenanceRequest.deviceType}`,
+      deviceModel: `موديل الجهاز: ${maintenanceRequest.deviceModel}`,
+      governorate: `المحافظة: ${maintenanceRequest.governorate}`,
+      price: `عزيزي السيد ${maintenanceRequest.user?.fullName}  لكي يتم إرسال التقني إليك  يجب دفع أجور كشف للصيانة بقيمة 10.000 ل.س على الرقم التالي 0999911111 في حالة syriatel والرقم 0955554444 في حالة MTN، هل أنت موافق؟`,
+    };
 
     // Create notification for the user
     await createNotification({
       recipientId: maintenanceRequest.customerId,
       senderId: technician.id,
       title: "استلام الطلب",
-      content: `تم تعيين تقني لطلب الصيانة  - ${maintenanceData.deviceType}`,
+      content: `تم تعيين تقني لطلب الصيانة  - "${maintenanceData.deviceType}" ${notificationNewOrderData.price}`,
+      requestId: maintenanceData.RequestID
     });
 
     await sendRealMail({
@@ -115,10 +118,11 @@ export async function PUT(
       html: ` <div dir="rtl">
   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h3> لقد تم تعيين تقني لطلب الصيانة ${maintenanceData.deviceType} </h3>
-  <h2>سيتم إرسال الفريق التقني الى العنوان المحدد </h2>
-  <b>${maintenanceRequest.address}</b>
-  <b>ومن ثم سيتم تعيين وإرسال التكلفة قبل البدء</b>
+  <h3> لقد تم تعيين تقني لطلب الصيانة "${maintenanceData.deviceType}" </h3>
+  <h2>سيتم إرسال الفريق التقني الى العنوان التالي بعد دفع أجور الصيانة </h2>
+  <h2>${maintenanceRequest.address}</h2>
+  <h2>${notificationNewOrderData.price}</h2>
+  <h2> ثم سيتم تعيين وإرسال التكلفة قبل البدء</h2>
 </div>`,
     });
 
