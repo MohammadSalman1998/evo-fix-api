@@ -140,7 +140,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
         phoneNO: body.phoneNO,
         address: body.address,
         avatar: body.avatar,
-        isActive: user.role === "ADMIN"? body.isActive : false,
+        isActive: userFromToken?.role === "ADMIN"? body.isActive : false,
         role: (body.role as Role) || user.role,
         technician:
         user.role === "TECHNICAL"
