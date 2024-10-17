@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
       where: {
         role: Role.TECHNICAL,
         isActive: true,
-        technician: { specialization: newRequest.deviceType },
-        governorate: newRequest.governorate,
+        technician: { specialization: body.deviceType },
+        governorate: body.governorate,
       },
     });
 
