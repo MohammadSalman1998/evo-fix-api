@@ -21,7 +21,13 @@ export async function PendingRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        deviceModel:true,
+        deviceImage:true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
+        createdAt:true,
       },
     });
     return requests;
@@ -50,10 +56,14 @@ export async function Requests(TechID: number, statusRequest: RequestStatus) {
         id: true,
         governorate: true,
         deviceType: true,
+        deviceModel:true,
+        deviceImage:true,
         problemDescription: true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
-        cost: true,
-        isPaid: true,
+        createdAt:true,
       },
     });
     return requests;
@@ -83,9 +93,13 @@ export async function QuotedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        deviceModel:true,
+        deviceImage:true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
-        cost: true,
-        isPaid: true,
+        createdAt:true
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -115,9 +129,13 @@ export async function InProgressRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        deviceModel:true,
+        deviceImage:true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
-        cost: true,
-        isPaid: true,
+        createdAt:true
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -147,9 +165,13 @@ export async function RejectedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        deviceModel:true,
+        deviceImage:true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
-        cost: true,
-        isPaid: true,
+        createdAt:true
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -179,9 +201,13 @@ export async function CompletedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
+        deviceModel:true,
+        deviceImage:true,
+        isPaid:true,
+        isPaidCheckFee:true,
+        cost:true,
         status: true,
-        cost: true,
-        isPaid: true,
+        createdAt:true
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -213,6 +239,7 @@ export async function AllTechTasks(TechID: number) {
         status: true,
         cost: true,
         isPaid: true,
+        isPaidCheckFee:true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -267,6 +294,7 @@ export async function AllRequests() {
         status: true,
         cost: true,
         isPaid: true,
+        isPaidCheckFee:true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -322,6 +350,7 @@ export async function AllRequestsByGovernorate(governorate: string) {
         status: true,
         cost: true,
         isPaid: true,
+        isPaidCheckFee:true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -362,6 +391,7 @@ export async function AllUserRequests(userID: number) {
         status: true,
         cost: true,
         isPaid: true,
+        isPaidCheckFee:true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
