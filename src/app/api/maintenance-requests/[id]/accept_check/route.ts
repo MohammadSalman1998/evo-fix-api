@@ -173,7 +173,7 @@ export async function POST(
     await createNotification({
       recipientId: technician?.id || 0,
       senderId: user.id,
-      title: data.title,
+      title: data.userTitle,
       content: contentData,
       requestId: data.requestId,
     });
