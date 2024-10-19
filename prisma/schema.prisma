@@ -67,7 +67,7 @@ model MaintenanceRequest {
   problemDescription String
   status             RequestStatus @default(PENDING)
   cost               Float?        @default(0)
-  resultCheck        String         @default("-")        
+  resultCheck        String?        @default("-")        
   isPaid             Boolean       @default(false)
   isPaidCheckFee     Boolean       @default(false)
   createdAt          DateTime      @default(now())
