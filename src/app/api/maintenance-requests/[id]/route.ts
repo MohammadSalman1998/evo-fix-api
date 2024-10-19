@@ -143,15 +143,20 @@ export async function DELETE(
       });
 
       await sendRealMail({
+        recipientName: maintenanceRequest.technician?.user.fullName,
+        mainContent: `تم حذف الطلب من قائمة الطلبات ${maintenance.deviceType}`,
+      },{
         to: maintenanceRequest.technician.user.email,
         subject: " حذف طلب صيانة",
-        html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-      <h3> تم حذف الطلب من قائمة الطلبات ${maintenance.deviceType} </h3>
-    </div>`,
       });
     }
+
+    await createNotification({
+      recipientId:user.id,
+      senderId: user.id,
+      title: "حذف طلب صيانة",
+      content: `تم حذف الطلب من قائمة الطلبات  ${maintenance.deviceType}`,
+    });
 
     return NextResponse.json({
       message: "تم حذف الطلب بنجاح ",

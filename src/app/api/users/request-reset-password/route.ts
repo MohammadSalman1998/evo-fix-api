@@ -28,24 +28,15 @@ export async function POST(request: NextRequest) {
 
     const resetLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/resetPassword?token=${token}&id=${user.id}`;
 
-
-    // Email options
-    const mailOptions = {
-      from: process.env.GOOGLE_EMAIL_APP_EVOFIX,
-      to: user.email,
-      subject: "طلب إعادة تعيين كلمة المرور",
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h2>انقر <a href="${resetLink}">هنا</a> لإعادة تعيين كلمة المرور، تنتهي صلاحيته بعد 15 دقيقة.</h2>
-    </div>`
-      
-      
-      
-      
-    };
-
     // Send email
-    await sendRealMail(mailOptions);
+    await sendRealMail({
+      recipientName: user.fullName,
+      mainContent: ``,
+      additionalContent: `انقر <a href="${resetLink}">هنا</a> لإعادة تعيين كلمة المرور، تنتهي صلاحيته بعد 15 دقيقة.`,
+    },{
+      to: user.email,
+      subject:'طلب إعادة تعيين كلمة المرور' , 
+    })
 
     return NextResponse.json({ message: "تم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور" }, { status: 200 });
 

@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 import { UpdateUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { sendRealMail } from "@/lib/email";
-import { sendSms } from "@/lib/sms";
+// import { sendSms } from "@/lib/sms";
 
 
 interface Props {
@@ -197,24 +197,17 @@ export async function PUT(request: NextRequest, { params }: Props) {
   };
 
 
-  const activeTechAccount_mail = {
-    to: user.email, 
-    subject: 'حساب تقني جديد', 
-    html: ` 
-    <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${user.fullName}</h1>
-      <h3>يسعدنا انضمامك لفريقنا</h3>
-      <h2>لقد تم تفعيل حسابك بنجاح</h2>
-      <b>يمكنك تسجيل الدخول عبر الايميل ${user.email}</b>
-    </div>
-  ` 
-  };
-
   if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
-    sendRealMail(activeTechAccount_mail)
-    sendSms(`   ترحب بكم EvoFix سيد/ة ${user.fullName}
-       تم تفعيل حسابك بنجاح`)
+    await sendRealMail({
+      recipientName: user.fullName,
+      mainContent: `يسعدنا انضمامك لفريقنا`,
+      additionalContent: `يمكنك تسجيل الدخول عبر الايميل ${user.email}`,
+    },{
+      to: user.email,
+      subject:'تفعيل حساب تقني جديد' , 
+    })
+    // sendSms(`   ترحب بكم EvoFix سيد/ة ${user.fullName}
+    //    تم تفعيل حسابك بنجاح`)
 
   }
 
@@ -273,20 +266,6 @@ export async function DELETE(request: NextRequest, { params }: Props) {
         { status: 404 }
       );
     }
-
-    const deleteAccount_mail = {
-      to: user.email, 
-      subject: 'حذف حساب', 
-      html: ` 
-      <div dir="rtl">
-        <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-        <h1>سيد/ة ${user.fullName}</h1>
-        <h3>لقد تم حذف حسابك نهائيا من المنصة</h3>
-        <h2>ان كان هناك خطأ ما </h2>
-        <b>يمكنك  إخبار المسؤول بذلك عبر الايميل mohammad.salman.m1998@gmail.com</b>
-      </div>
-    ` 
-    };
     
 
     if ((userFromToken !== null) && ((userFromToken.id === user.id || userFromToken.role === "ADMIN") || (userFromToken.role === "SUBADMIN" && subAdminUser?.subadmin?.governorate === user.governorate && user.role !== "SUBADMIN" && user.role !== "ADMIN"))) {
@@ -302,7 +281,14 @@ export async function DELETE(request: NextRequest, { params }: Props) {
             await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
         }
 
-        sendRealMail(deleteAccount_mail)
+        await sendRealMail({
+          recipientName: user.fullName,
+          mainContent: `لقد تم حذف حسابك نهائيا من المنصة`,
+          additionalContent: `يمكنك  إخبار المسؤول بذلك عبر الايميل ${process.env.GOOGLE_EMAIL_APP_EVOFIX}`,
+        },{
+          to: user.email,
+          subject:'حذف حساب' , 
+        })
         // Finally, delete the user
         await prisma.user.delete({ where: { id: parseInt(params.id) } });
     });

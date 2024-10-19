@@ -32,6 +32,7 @@ export async function PUT(
         user: {
           select: {
             isActive: true,
+            email:true
           },
         },
       },
@@ -121,22 +122,38 @@ export async function PUT(
         recipientId: maintenanceRequest.technician?.user.id,
         senderId: user.id,
         title: "رفض تكلفة الطلب",
-        content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType}`,
+        content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} يمكنك إعادة القطعة`,
         requestId: maintenanceRequest.id
       });
 
+     
+
       await sendRealMail({
+        recipientName: maintenanceRequest.technician.user.fullName,
+        mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
+        additionalContent: `يمكنك إعادة القطعة إلى العنوان التالي "${maintenanceRequest.address}"`,
+      },{
         to: maintenanceRequest.technician.user.email,
         subject: " رفض تكلفة طلب صيانة",
-        html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${maintenanceRequest.technician.user.fullName}</h1>
-      <h3> لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType} </h3>
-      <h2>يمكنك إعادة القطعة إلى العنوان التالي</h2>
-      <b>${maintenanceRequest.address}</b>
-    </div>`,
       });
     }
+
+    await createNotification({
+      recipientId: user.id,
+      senderId: user.id,
+      title: "رفض تكلفة الطلب",
+      content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} نتمنى أن تراسلنا لمعرفة السبب`,
+      requestId: maintenanceRequest.id
+    });
+
+    await sendRealMail({
+      recipientName: user.fullName,
+      mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
+      additionalContent: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} نتمنى أن تراسلنا لمعرفة السبب`,
+    },{
+      to:maintenance.user.email,
+      subject: " رفض تكلفة طلب صيانة",
+    });
 
     return NextResponse.json({
       message: "تم رفض عرض السعر ",

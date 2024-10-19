@@ -165,9 +165,10 @@ export async function POST(
       userName: user.fullName,
     };
     const contentData = `نوع الجهاز ${data.deviceType} - موديل الجهاز ${data.deviceModel} - العنوان ${data.address} - المحافظة ${data.governorate} - رقم الجوال ${data.phoneNo}`;
+    const contentEmailData = `نوع الجهاز: "${data.deviceType}" <br/> موديل الجهاز: "${data.deviceModel}" <br/> العنوان: "${data.address}" <br/> المحافظة: "${data.governorate}" <br/> رقم الجوال: "${data.phoneNo}"`;
     const userContent = `سيد/ة ${data.userName}- شكرا لك - تم إحالة طلبك "${data.deviceType}" - إلى التقني المختص وسيتم التواصل معك عبر الرقم "${data.phoneNo}" `;
 
-    // Send email to the technician
+    
 
     // Create notification for the technician
     await createNotification({
@@ -187,26 +188,26 @@ export async function POST(
       requestId: data.requestId,
     });
 
+    // Send email to the technician
     await sendRealMail({
+      recipientName: technician?.fullName,
+      mainContent: `لقد تم دفع أجور الكشف لطلب الصيانة "${maintenanceData.deviceType}"`,
+      additionalContent: `يمكنك الذهاب إلى العنوان المحدد في بيانات الطلب التالية والكشف عليه <br/> ${contentEmailData}`,
+    },{
       to: technician?.email || "",
-      subject: data.title,
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${technician?.fullName}</h1>
-      <h3> يوجد طلب صيانة جديد مناسب لك </h3>
-      <h2>${contentData}</h2>
-    </div>`,
+      subject: data.userTitle,
       requestId: data.requestId,
     });
 
+    // Send email to the user
+
     await sendRealMail({
+      recipientName: `${data.userName} شكرا لك`,
+      mainContent: `لقد تم دفع أجور الكشف لطلب الصيانة "${maintenanceData.deviceType}" بنجاح`,
+      additionalContent: `سيتواصل معك التقني المختص على الرقم "${data.phoneNo}" ويحدد موعد مناسب لك ليتم تشخيص العطل`,
+    },{
       to: maintenance.user.email,
       subject: data.userTitle,
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${data.userName}</h1>
-      <h3> ${userContent} </h3>
-    </div>`,
       requestId: data.requestId,
     });
 

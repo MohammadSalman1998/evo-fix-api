@@ -38,7 +38,12 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
             problemDescription:true,
             deviceType:true,
             deviceModel: true,
-            deviceImage: true
+            deviceImage: true,
+            user:{
+              select:{
+                email:true
+              }
+            }
         }
     })
 
@@ -90,18 +95,30 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
       });
 
       await sendRealMail({
+        recipientName: technician?.fullName,
+        mainContent: "هناك طلب صيانة معاد طلبه يمكنك الدخول الى حسابك لمعرفة التفاصيل",
+        additionalContent: `${notificationNewOrderData.deviceType} <br/> ${notificationNewOrderData.governorate} <br/> <br/>  <img width="100%" height="20%" src="${oldRequest.deviceImage}" alt="requestImage"`,
+      },{
         to: technician.email,
         subject:notificationNewOrderData.title ,
-        html: ` 
-        <div dir="rtl">
-          <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-          <h1>سيد/ة ${technician.fullName}</h1>
-          <h3>هناك طلب صيانة معاد طلبه يمكنك الدخول الى حسابك لمعرفة التفاصيل</h3>
-          <h2>${notificationNewOrderData.deviceType} - ${notificationNewOrderData.governorate}</h2>
-        </div>
-      ` 
       })
     }
+
+    await createNotification({
+      recipientId: user.id,
+      senderId: user.id,
+      title: notificationNewOrderData.title,
+      content: `${notificationNewOrderData.deviceType} - ${notificationNewOrderData.governorate}`,
+    });
+
+    await sendRealMail({
+      recipientName: user.fullName,
+      mainContent: "تم معاودة إرسال طلبك إلى التقني بنجاح <br/> سيتم إخبارك حين الاستلام",
+      additionalContent: `${notificationNewOrderData.deviceType} <br/> ${notificationNewOrderData.governorate} <br/> <br/>  <img width="100%" height="20%" src="${oldRequest.deviceImage}" alt="requestImage"`,
+    },{
+      to: oldRequest.user.email,
+      subject:notificationNewOrderData.title ,
+    })
 
     return NextResponse.json({ message: "تم إعادة طلب الصيانة بنجاح", request: reSendRequest }, { status: 201 });
   } catch (error) {

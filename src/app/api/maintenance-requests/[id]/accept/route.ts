@@ -102,6 +102,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
       isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
+      resultCheck: maintenanceRequest.resultCheck,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
@@ -134,41 +135,37 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         requestId: maintenanceRequest.id
       });
 
-      // Create notification for the user
-      // await createNotification({
-      //   recipientId: maintenanceRequest.user?.id,
-      //   senderId: maintenanceRequest.technician.user.id,
-      //   title: "دفع رسوم البدء بالطلب",
-      //   content: `حتى يتم البدء بصيانة الجهاز- ${
-      //     maintenanceData.deviceType
-      //   } يجب دفع رسوم البدء بالطلب بقيمة ${Number(maintenanceData.cost) / 4}`,
-      // });
+
 
       await sendRealMail({
+        recipientName: maintenanceRequest.technician.user.fullName,
+        mainContent: `لقد تمت الموافقة على تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
+        additionalContent: `يمكنك البدء بالصيانة`,
+      },{
         to: maintenanceRequest.technician.user.email,
         subject: "قبول تكلفة الطلب",
-        html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${maintenanceRequest.technician.user.fullName}</h1>
-      <h3> لقد تمت الموافقة على تكلفة طلب الصيانة ${maintenanceData.deviceType} </h3>
-      <h2>يمكنك البدء بالصيانة </h2>
-    </div>`,
+        requestId: maintenanceRequest.id
       });
 
-    //   await sendRealMail({
-    //     to: maintenanceRequest.technician.user.email,
-    //     subject: "دفع رسوم البدء بالطلب",
-    //     html: ` <div dir="rtl">
-    //   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-    //   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-    //   <h3>  حتى يتم البدء بصيانة الجهاز- ${
-    //     maintenanceData.deviceType
-    //   } يجب دفع رسوم البدء بالطلب بقيمة ${
-    //       Number(maintenanceData.cost) / 4
-    //     } </h3>
-    // </div>`,
-    //   });
     }
+
+    await createNotification({
+      recipientId: maintenanceRequest.user.id,
+      senderId: user.id,
+      title: "قبول تكلفة الطلب",
+      content: `شكرا لك سيد/ة $${maintenanceRequest.user.fullName} سيتم البدء بالصيانة وإخبارك عند الإنجاز`,
+      requestId: maintenanceRequest.id
+    });
+
+    await sendRealMail({
+      recipientName: maintenanceRequest.user.fullName,
+      mainContent: `شكرا لك`,
+      additionalContent: `سيتم البدء بالصيانة وإخبارك عند الإنجاز`,
+    },{
+      to: maintenanceRequest.user.email,
+      subject: "قبول تكلفة الطلب",
+      requestId: maintenanceRequest.id
+    });
 
     return NextResponse.json({
       message: "تم قبول عرض السعر بنجاح",

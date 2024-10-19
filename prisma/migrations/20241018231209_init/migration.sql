@@ -67,6 +67,7 @@ CREATE TABLE "MaintenanceRequest" (
     "problemDescription" TEXT NOT NULL,
     "status" "RequestStatus" NOT NULL DEFAULT 'PENDING',
     "cost" DOUBLE PRECISION DEFAULT 0,
+    "resultCheck" TEXT NOT NULL DEFAULT '-',
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "isPaidCheckFee" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -168,6 +169,17 @@ CREATE TABLE "services" (
     CONSTRAINT "services_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "DevicesModels" (
+    "id" SERIAL NOT NULL,
+    "serviceID" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "DevicesModels_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -221,3 +233,6 @@ ALTER TABLE "SMS" ADD CONSTRAINT "SMS_recipientId_fkey" FOREIGN KEY ("recipientI
 
 -- AddForeignKey
 ALTER TABLE "SMS" ADD CONSTRAINT "SMS_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "MaintenanceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DevicesModels" ADD CONSTRAINT "DevicesModels_serviceID_fkey" FOREIGN KEY ("serviceID") REFERENCES "services"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -131,6 +131,13 @@ export interface EmailOutDto {
   sentAt: Date;
 }
 
+export interface EmailTemplateProps {
+  recipientName?: string;
+  mainContent: string;
+  additionalContent?: string;
+  seconderyContent?: string;
+}
+
 export interface NewEpaid {
   senderId: number;
   requestId: number;

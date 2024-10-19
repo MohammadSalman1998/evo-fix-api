@@ -6,7 +6,7 @@ import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
-import { sendSms } from "@/lib/sms";
+// import { sendSms } from "@/lib/sms";
 import { CostSchema } from "@/utils/validationSchemas";
 
 /**
@@ -19,6 +19,7 @@ import { CostSchema } from "@/utils/validationSchemas";
 
 interface costDto{
   cost: number;
+  resultCheck:string;
 }
 export async function PUT(
   request: NextRequest,
@@ -33,11 +34,13 @@ export async function PUT(
       );
     }
 
+    
+
     if (technician.role !== "TECHNICAL") {
       return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
 
-    const  cost  = (await request.json()) as costDto;
+    const  body  = (await request.json()) as costDto;
     const requestId = parseInt(params.id);
 
     const maintenance = await prisma.maintenanceRequest.findUnique({
@@ -79,7 +82,7 @@ export async function PUT(
       );
     }
 
-    const validate = CostSchema.safeParse(cost)
+    const validate = CostSchema.safeParse(body)
     if(!validate.success){
       return NextResponse.json(
         { message: validate.error.errors[0].message },
@@ -93,8 +96,9 @@ export async function PUT(
         status: "ASSIGNED",
       },
       data: {
-        cost: cost.cost,
+        cost: body.cost,
         status: RequestStatus.QUOTED,
+        resultCheck: body.resultCheck
       },
       include: {
         user: {
@@ -116,6 +120,7 @@ export async function PUT(
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
       isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
+      resultCheck: maintenanceRequest.resultCheck,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
@@ -127,39 +132,38 @@ export async function PUT(
       recipientId: maintenanceRequest.customerId,
       senderId: technician.id,
       title: "تكلفة الطلب",
-      content: `إن التكلفة المقدرة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة  ؟`,
+      content: `إن التكلفة المقدرة لطلب الصيانة "${maintenanceData.deviceType}" هي "${maintenanceData.cost}" ل.س, إن العطل الذي سيتم صيانته هو "${maintenanceData.resultCheck}" هل توافق لنبدأ بالصيانة  ؟`,
       requestId: maintenanceRequest.id
     });
 
     await sendRealMail({
+      recipientName: technician?.fullName,
+      mainContent: `إن التكلفة المقدرة لطلب الصيانة "${maintenanceData.deviceType}" هي "${maintenanceData.cost}" ل.س <br/> إن العطل الذي سيتم صيانته هو "${maintenanceData.resultCheck}"`,
+      additionalContent: `يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة`,
+    },{
       to: maintenanceRequest.user.email,
       subject: " تكلفة طلب صيانة",
-      html: ` <div dir="rtl">
-<h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-<h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-<h2> إن التكلفة المقدرة لطلب الصيانة  - ${maintenanceData.deviceType} هي ${maintenanceData.cost} ل.س هل توافق لنبدأ بالصيانة ؟  </h2>
-<b>يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة</b>
-</div>`,
+      requestId: maintenanceRequest.id
     });
 
-    try {
-      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-          إن تكلفة طلب الصيانة الخاص بك
-          ${maintenanceData.deviceType} 
-          هي ${maintenanceData.cost} ل.س
-          إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
-    } catch (error) {
-      console.log(error);
+    // try {
+    //   await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+    //       إن تكلفة طلب الصيانة الخاص بك
+    //       ${maintenanceData.deviceType} 
+    //       هي ${maintenanceData.cost} ل.س
+    //       إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
+    // } catch (error) {
+    //   console.log(error);
 
-      return NextResponse.json(
-        {
-          message:
-            "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
-          request: maintenanceData,
-        },
-        { status: 200 }
-      );
-    }
+    //   return NextResponse.json(
+    //     {
+    //       message:
+    //         "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
+    //       request: maintenanceData,
+    //     },
+    //     { status: 200 }
+    //   );
+    // }
 
     return NextResponse.json(
       {

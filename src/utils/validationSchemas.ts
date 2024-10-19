@@ -70,7 +70,8 @@ export const CreateServiceSchema = z.object({
 
  export const CostSchema = z.object({
   cost: z.number({required_error:ERROR_MSG.cost_err, invalid_type_error: "يجب أن تكون التكلفة مدخل رقمي"}).positive({message: "يجب أن تكون التكلفة مدخل رقمي موجب أكبر من 0"}),
- })
+  resultCheck: z.string({required_error: "الرجاء تعيين وصف المشكلة بعد الفحص"})
+})
 
  export const ComplaintSchema = z.object({
   message: z.string(),

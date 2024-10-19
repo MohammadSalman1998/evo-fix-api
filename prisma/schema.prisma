@@ -67,6 +67,7 @@ model MaintenanceRequest {
   problemDescription String
   status             RequestStatus @default(PENDING)
   cost               Float?        @default(0)
+  resultCheck        String         @default("-")        
   isPaid             Boolean       @default(false)
   isPaidCheckFee     Boolean       @default(false)
   createdAt          DateTime      @default(now())
@@ -160,17 +161,17 @@ model services {
   isActive Boolean  @default(true)
   createAt DateTime @default(now())
 
-  // DevicesModels DevicesModels[]
+  DevicesModels DevicesModels[]
 }
 
-// model DevicesModels{
-//   id  Int @id @default(autoincrement())
-//   serviceID Int
-//   title   String
-//   isActive  Boolean @default(true)
-//   createAt DateTime @default(now())
-//   services  services @relation(fields: [serviceID], references: [id])
-// }
+model DevicesModels{
+  id  Int @id @default(autoincrement())
+  serviceID Int
+  title   String
+  isActive  Boolean @default(true)
+  createAt DateTime @default(now())
+  services  services @relation(fields: [serviceID], references: [id])
+}
 
 enum Role {
   ADMIN

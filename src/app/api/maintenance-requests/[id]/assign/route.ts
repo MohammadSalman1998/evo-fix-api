@@ -103,6 +103,8 @@ export async function PUT(
       price: `عزيزي السيد ${maintenanceRequest.user?.fullName}  لكي يتم إرسال التقني إليك  يجب دفع أجور كشف للصيانة بقيمة 10.000 ل.س على الرقم التالي 0999911111 في حالة syriatel والرقم 0955554444 في حالة MTN، هل أنت موافق؟`,
     };
 
+    const contentEmail = `سيتم إرسال الفريق التقني الى العنوان التالي: "${maintenanceRequest.address}" بعد دفع أجور الكشف <br/> تكلفة أجور الكشف هي 10.000 ل.س <br/> يتم الدفع عبر أحد المنصات التالية: <br/> MTN Cach: على الرقم التالي "0960950112" <br/> SYRIATEL Cach: على الرقم التالي "0930361210" <br/> إن كنت موافق سارع بالدفع ليتم إرسال التقني إليك`
+    const seconderyContent = 'بعد القيام بعملية الفحص سيتم إرسال التكلفة المقدرة للصيانة'
     // Create notification for the user
     await createNotification({
       recipientId: maintenanceRequest.customerId,
@@ -113,18 +115,29 @@ export async function PUT(
     });
 
     await sendRealMail({
+      recipientName: technician.fullName,
+      mainContent: `لقد تم تعيين تقني لطلب الصيانة "${maintenanceData.deviceType}"`,
+      additionalContent: contentEmail,
+      seconderyContent:seconderyContent
+    },{
       to: maintenanceRequest.user.email,
       subject: " استلام طلب صيانة",
-      html: ` <div dir="rtl">
-  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h3> لقد تم تعيين تقني لطلب الصيانة "${maintenanceData.deviceType}" </h3>
-  <h2>سيتم إرسال الفريق التقني الى العنوان التالي بعد دفع أجور الصيانة </h2>
-  <h2>${maintenanceRequest.address}</h2>
-  <h2>${notificationNewOrderData.price}</h2>
-  <h2> ثم سيتم تعيين وإرسال التكلفة قبل البدء</h2>
-</div>`,
-    });
+      requestId: maintenanceData.RequestID,
+    })
+
+//     await sendRealMail({
+//       to: maintenanceRequest.user.email,
+//       subject: " استلام طلب صيانة",
+//       html: ` <div dir="rtl">
+//   <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+//   <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
+//   <h3> لقد تم تعيين تقني لطلب الصيانة "${maintenanceData.deviceType}" </h3>
+//   <h2>سيتم إرسال الفريق التقني الى العنوان التالي بعد دفع أجور الصيانة </h2>
+//   <h2>${maintenanceRequest.address}</h2>
+//   <h2>${notificationNewOrderData.price}</h2>
+//   <h2> ثم سيتم تعيين وإرسال التكلفة قبل البدء</h2>
+// </div>`,
+//     });
 
     return NextResponse.json({
       message: "تم تعيين التقني بنجاح",

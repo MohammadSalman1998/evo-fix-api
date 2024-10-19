@@ -1,5 +1,6 @@
 // src\utils\constants.ts
 export const DOMAIN = "http://localhost:3000";
+export const HOME_EVOFIX = "http://localhost:3001";
 
 export const ERROR_MSG = {
     email_err: "أدخل الإيميل",
@@ -23,3 +24,5 @@ export const ERROR_MSG = {
     textMessage_err: "الرجاء نسخ نص رسالة التحويل",
     typePaid_err: "الرجاء تحديد طريقة الدفع",
   }
+
+  

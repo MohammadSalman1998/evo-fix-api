@@ -66,15 +66,6 @@ export async function POST(
       );
     }
 
-
-      const CheckFeePaidData: NewEpaid = {
-        senderId: user.id,
-        requestId:requestId || maintenanceCompleted.id,
-        OperationNumber: body.OperationNumber,
-        amount: body.amount,
-        textMessage: body.textMessage,
-        typePaid: body.typePaid,
-      };
   
       const userSmsPaid = await prisma.sMS.findFirst({
         where: {
@@ -93,11 +84,6 @@ export async function POST(
         );
       }
   
-      await CheckFeePaid(CheckFeePaidData);
-
-
-   
-
     const techID = maintenanceCompleted.technicianId;
     const subAdmin = await prisma.user.findFirst({
       where: {
@@ -106,9 +92,40 @@ export async function POST(
       },
     });
 
+    if(!subAdmin){
+      return NextResponse.json(
+        {
+          message:
+            "تأكد SUBADMIN ان كان موجود",
+        },
+        { status: 400 }
+      );
+    }
+
     const technician = await prisma.user.findUnique({
       where: { id: techID || 0 },
     });
+
+    if(!technician){
+      return NextResponse.json(
+        {
+          message:
+            "تأكد التقني ان كان موجود",
+        },
+        { status: 400 }
+      );
+    }
+
+    const CheckFeePaidData: NewEpaid = {
+      senderId: user.id,
+      requestId:requestId || maintenanceCompleted.id,
+      OperationNumber: body.OperationNumber,
+      amount: body.amount,
+      textMessage: body.textMessage,
+      typePaid: body.typePaid,
+    };
+
+    await CheckFeePaid(CheckFeePaidData);
 
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
@@ -153,6 +170,7 @@ export async function POST(
       cost: maintenanceRequest.cost,
       isPaid: maintenanceRequest.isPaid,
       isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
+      resultCheck: maintenanceRequest.resultCheck,
       status: maintenanceRequest.status,
       costumerID: maintenanceRequest.user.id,
       costumerName: maintenanceRequest.user.fullName,
@@ -182,6 +200,7 @@ export async function POST(
       userName: user.fullName,
     };
     const contentData = `نوع الجهاز ${data.deviceType} - موديل الجهاز ${data.deviceModel} - العنوان ${data.address} - المحافظة ${data.governorate} - رقم الجوال ${data.phoneNo}`;
+    const contentEmailData = `نوع الجهاز: "${data.deviceType}" <br/> موديل الجهاز: "${data.deviceModel}" <br/> العنوان: "${data.address}" <br/> المحافظة: "${data.governorate}" <br/> رقم الجوال: "${data.phoneNo}"`;
     const userContent = `سيد/ة ${data.userName} - تم استكمال رسوم الصيانة بنجاح للطلب "${data.deviceType}" - سيتم الاتصال بك على الرقم: "${data.phoneNo}" وإعادة الجهاز إليك `;
 
     // Create notification for the technician
@@ -213,39 +232,34 @@ export async function POST(
 
     // Create email for the technician
     await sendRealMail({
+      recipientName: technician?.fullName,
+      mainContent: "تم استكمال رسوم الصيانة بنجاح يمكنك استعادة الطلب",
+      additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
+    },{
       to: technician?.email || "",
       subject: data.title,
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${technician?.fullName}</h1>
-      <h3> تم استكمال رسوم الصيانة بنجاح يمكنك استعادة الطلب</h3>
-      <h2>${contentData}</h2>
-    </div>`,
       requestId: data.requestId,
     });
 
     // Create email for the subAdmin
     await sendRealMail({
+      recipientName: subAdmin?.fullName,
+      mainContent: "تم استكمال رسوم الصيانة بنجاح ",
+      additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
+    },{
       to: subAdmin?.email || "",
       subject: data.title,
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${subAdmin?.fullName}</h1>
-      <h3> تم استكمال رسوم الصيانة بنجاح للطلب</h3>
-      <h2>${contentData}</h2>
-    </div>`,
       requestId: data.requestId,
     });
 
     // Create email for the user
     await sendRealMail({
+      recipientName: technician?.fullName,
+      mainContent: "شكرا لك تم استكمال رسوم الصيانة بنجاح ",
+      additionalContent: `سيتم التواصل معك على الرقم "${data.phoneNo}" لاستعادة الطلب لديك`,
+    },{
       to: maintenanceCompleted.user.email,
       subject: data.userTitle,
-      html: ` <div dir="rtl">
-      <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-      <h1>سيد/ة ${data.userName}</h1>
-      <h3> ${userContent} </h3>
-    </div>`,
       requestId: data.requestId,
     });
 

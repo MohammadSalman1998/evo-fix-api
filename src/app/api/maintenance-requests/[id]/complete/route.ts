@@ -6,7 +6,7 @@ import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
 import { sendRealMail } from "@/lib/email";
-import { sendSms } from "@/lib/sms";
+// import { sendSms } from "@/lib/sms";
 
 
 /**
@@ -100,6 +100,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           cost: maintenanceRequest.cost,
           isPaid: maintenanceRequest.isPaid,
           isPaidCheckFee: maintenanceRequest.isPaidCheckFee,
+          resultCheck: maintenanceRequest.resultCheck,
           status: maintenanceRequest.status,
           costumerID: maintenanceRequest.user.id,
           costumerName: maintenanceRequest.user.fullName,
@@ -110,42 +111,40 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       recipientId: maintenanceData.costumerID,
       senderId:technician.id,
       title: "إنجاز الطلب",
-      content: `تم إكمال طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم ${maintenanceData.cost} ل.س لاستلام الجهاز.`,
+      content: `تم إنجاز طلب الصيانة  ${maintenanceData.deviceType}. يرجى دفع الرسوم "${maintenanceData.cost}" ل.س لاستلام الجهاز.`,
       requestId: maintenanceRequest.id
     });
 
     await sendRealMail({
+      recipientName: maintenanceRequest.user.fullName,
+      mainContent: `لقد تم الانتهاء من طلب الصيانة "${maintenanceData.deviceType}" بنجاح`,
+      additionalContent: `لطفا منك، يجب عليك دفع رسوم الصيانة "${maintenanceData.cost}" ل.س لاستلام الجهاز  <br/> وشكرا على ثقتكم بنا <br/> نتمنى أن نكون عند حسن ظنكم `,
+    },{
       to: maintenanceRequest.user.email,
       subject: " إنجاز طلب الصيانة",
-      html: ` <div dir="rtl">
-  <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-  <h1>سيد/ة ${maintenanceRequest.user.fullName}</h1>
-  <h3> لقد تم الانتهاء من طلب الصيانة ${maintenanceData.deviceType} </h3>
-  <h2>سيتم إرسال الفريق التقني الى العنوان التالي بعد أن تستكمل دفع الرسوم : "${maintenanceData.cost}" ل.س </h2>
-  <h3>${maintenanceRequest.address}</h3>
-</div>`,
+      requestId: maintenanceRequest.id
     });
 
-    try {
+    // try {
       
-      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-        إن  طلب الصيانة الخاص بك
-        ${maintenanceData.deviceType}
-        تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
-        ${maintenanceData.cost} ل.س
-        `)
-      } catch (error) {
-        console.log(error);
+    //   await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+    //     إن  طلب الصيانة الخاص بك
+    //     ${maintenanceData.deviceType}
+    //     تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
+    //     ${maintenanceData.cost} ل.س
+    //     `)
+    //   } catch (error) {
+    //     console.log(error);
   
-        return NextResponse.json(
-          {
-            message:
-              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم إنجاز الطلب بنجاح ",
-            request: maintenanceData,
-          },
-          { status: 200 }
-        );
-      }
+    //     return NextResponse.json(
+    //       {
+    //         message:
+    //           "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم إنجاز الطلب بنجاح ",
+    //         request: maintenanceData,
+    //       },
+    //       { status: 200 }
+    //     );
+    //   }
 
     return NextResponse.json({ message: "تم إنجاز طلب الصيانة بنجاح", request: maintenanceData });
   } catch (error) {
