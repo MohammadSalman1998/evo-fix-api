@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
  *  @access public
  */
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const getCountServices = await prisma.services.count({
       where: { isActive: true },

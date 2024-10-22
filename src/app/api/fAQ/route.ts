@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
  *  @access public
  */
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const countFAQ = await prisma.fAQ.count({ where: { isPublished: true } });
 
