@@ -6,6 +6,7 @@ import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
 import { sendRealMail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 // import { sendSms } from "@/lib/sms";
 
 
@@ -125,28 +126,30 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       requestId: maintenanceRequest.id
     });
 
-    // try {
-      
-    //   await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-    //     إن  طلب الصيانة الخاص بك
-    //     ${maintenanceData.deviceType}
-    //     تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
-    //     ${maintenanceData.cost} ل.س
-    //     `)
-    //   } catch (error) {
-    //     console.log(error);
-  
-    //     return NextResponse.json(
-    //       {
-    //         message:
-    //           "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم إنجاز الطلب بنجاح ",
-    //         request: maintenanceData,
-    //       },
-    //       { status: 200 }
-    //     );
-    //   }
+   
 
-    return NextResponse.json({ message: "تم إنجاز طلب الصيانة بنجاح", request: maintenanceData });
+    try {
+      
+      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+        إن  طلب الصيانة الخاص بك
+        ${maintenanceData.deviceType}
+        تم إنجازه بنجاح يمكنك تسديد كامل الرسوم لاعادة الجهاز 
+        ${maintenanceData.cost} ل.س
+        `)
+      } catch (error) {
+        console.log(error);
+  
+        return NextResponse.json(
+          {
+            message:
+              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم إنجاز الطلب بنجاح ",
+            request: maintenanceData,
+          },
+          { status: 200 }
+        );
+      }
+
+    return NextResponse.json({ message: "تم إنجاز طلب الصيانة بنجاح", request: maintenanceData },{status:200});
   } catch (error) {
     console.error("Error completing maintenance request", error);
     return NextResponse.json({ message: "خطأ من الخادم " }, { status: 500 });

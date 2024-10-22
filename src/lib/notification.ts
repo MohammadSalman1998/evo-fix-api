@@ -2,7 +2,7 @@
 import prisma from "@/utils/db";
 import { CreateNotificationDto, notificationOutDto } from "@/utils/dtos";
 // import { Notification } from "@prisma/client";
-// import { sendToUser } from "../websocket-server";
+import { sendToUser } from "../websocket-server";
 
 export async function createNotification({
   senderId,
@@ -20,18 +20,21 @@ export async function createNotification({
         title,
         content,
       },
+      include: {
+        request: true,
+      },
     });
 
-    // sendToUser(recipientId, {
-    //   type: "NEW_NOTIFICATION",
-    //   data: {
-    //     recipientId,
-    //     requestId,
-    //     title,
-    //     content,
-    //     createdAt: new Date(),
-    //   },
-    // });
+    sendToUser(recipientId, {
+      type: "NEW_NOTIFICATION",
+      data: {
+        recipientId,
+        requestId,
+        title,
+        content,
+        createdAt: new Date(),
+      },
+    });
 
     return notification;
   } catch (error) {
@@ -50,7 +53,7 @@ export async function markNotificationAsRead(
       data: { isRead: true },
       select: {
         id: true,
-        requestId:true,
+        requestId: true,
         content: true,
         title: true,
         createdAt: true,
@@ -75,18 +78,24 @@ export async function getUserNotifications(
         id: true,
         recipientId: true,
         senderId: true,
-        requestId:true,
+        requestId: true,
         title: true,
         content: true,
         createdAt: true,
         isRead: true,
+        request:{
+          select:{
+            isPaid:true,
+            isPaidCheckFee:true
+          }
+        }
       },
       orderBy: { createdAt: "desc" },
       // take: limit,
       // skip: offset
     });
 
-    return notifications
+    return notifications;
   } catch (error) {
     console.error("Error fetching user notifications:", error);
     throw new Error("Failed to fetch user notifications");

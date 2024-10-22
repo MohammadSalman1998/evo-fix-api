@@ -8,8 +8,7 @@ import bcrypt from "bcryptjs";
 import { UpdateUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { sendRealMail } from "@/lib/email";
-// import { sendSms } from "@/lib/sms";
-
+import { sendSms } from "@/lib/sms";
 
 interface Props {
   params: { id: string };
@@ -26,24 +25,24 @@ export async function GET(request: NextRequest, { params }: Props) {
 
   try {
     const userFromToken = verifyToken(request);
-    if(!userFromToken){
+    if (!userFromToken) {
       return NextResponse.json(
         { message: "ليس لديك الصلاحية " },
         { status: 403 }
       );
     }
-      const subAdminUser = await prisma.user.findUnique({
-        where:{
-          id: userFromToken?.id
+    const subAdminUser = await prisma.user.findUnique({
+      where: {
+        id: userFromToken?.id,
+      },
+      select: {
+        subadmin: {
+          select: {
+            governorate: true,
+          },
         },
-        select:{
-          subadmin:{
-            select:{
-              governorate: true
-            }
-          }
-        }
-      })
+      },
+    });
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -76,11 +75,14 @@ export async function GET(request: NextRequest, { params }: Props) {
       admin_department: user.subadmin?.department,
       admin_governorate: user.subadmin?.governorate,
     };
-    
 
-
-    if ((userFromToken !== null) && ((userFromToken.id === user.id || userFromToken.role === "ADMIN") || (userFromToken.role === "SUBADMIN") && subAdminUser?.subadmin?.governorate === user.governorate)) {
-
+    if (
+      userFromToken !== null &&
+      (userFromToken.id === user.id ||
+        userFromToken.role === "ADMIN" ||
+        (userFromToken.role === "SUBADMIN" &&
+          subAdminUser?.subadmin?.governorate === user.governorate))
+    ) {
       return NextResponse.json(userResponse, { status: 200 });
     }
 
@@ -88,7 +90,6 @@ export async function GET(request: NextRequest, { params }: Props) {
       { message: "ليس لديك الصلاحية " },
       { status: 403 }
     );
-
   } catch (error) {
     console.error("Error fetching user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -114,7 +115,6 @@ export async function PUT(request: NextRequest, { params }: Props) {
       );
     }
     const userFromToken = verifyToken(request);
-    
 
     const body = (await request.json()) as UpdateUserDto;
     const validation = UpdateUserSchema.safeParse(body);
@@ -122,6 +122,17 @@ export async function PUT(request: NextRequest, { params }: Props) {
       return NextResponse.json(
         { message: validation.error.errors[0].message },
         { status: 400 }
+      );
+    }
+
+    if (
+      userFromToken === null ||
+      userFromToken.id !== user.id ||
+      userFromToken.role !== "ADMIN"
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية " },
+        { status: 403 }
       );
     }
 
@@ -140,11 +151,10 @@ export async function PUT(request: NextRequest, { params }: Props) {
         phoneNO: body.phoneNO,
         address: body.address,
         avatar: body.avatar,
-        isActive: userFromToken?.role === "ADMIN"? body.isActive : false,
+        isActive: userFromToken?.role === "ADMIN" ? body.isActive : false,
         role: (body.role as Role) || user.role,
         technician:
-        user.role === "TECHNICAL"
-          
+          user.role === "TECHNICAL"
             ? {
                 upsert: {
                   create: {
@@ -159,7 +169,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
               }
             : undefined,
         subadmin:
-        user.role === "SUBADMIN"
+          user.role === "SUBADMIN"
             ? {
                 upsert: {
                   create: {
@@ -194,36 +204,47 @@ export async function PUT(request: NextRequest, { params }: Props) {
       technician_services: updatedUser.technician?.services,
       admin_department: updatedUser.subadmin?.department,
       admin_governorate: updatedUser.subadmin?.governorate,
-  };
+    };
 
+    if (
+      userFromToken !== null &&
+      updatedUser.isActive === true &&
+      (userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")
+    ) {
+      await sendRealMail(
+        {
+          recipientName: user.fullName,
+          mainContent: `يسرنا انضمامك لفريقنا`,
+          additionalContent: `يمكنك تسجيل الدخول عبر الايميل ${user.email}`,
+        },
+        {
+          to: user.email,
+          subject: "تفعيل حساب جديد",
+        }
+      );
+      try {
+        await sendSms(`   ترحب بكم EvoFix سيد/ة ${user.fullName}
+    تم تفعيل حسابك بنجاح, يمكنك تسجيل الدخول عبر الايميل ${user.email}`);
+      } catch (error) {
+        console.log(error);
 
-  if(userFromToken !== null && updatedUser.isActive === true && (userFromToken.role === "ADMIN" ||  userFromToken.role === "SUBADMIN" )){
-    await sendRealMail({
-      recipientName: user.fullName,
-      mainContent: `يسعدنا انضمامك لفريقنا`,
-      additionalContent: `يمكنك تسجيل الدخول عبر الايميل ${user.email}`,
-    },{
-      to: user.email,
-      subject:'تفعيل حساب تقني جديد' , 
-    })
-    // sendSms(`   ترحب بكم EvoFix سيد/ة ${user.fullName}
-    //    تم تفعيل حسابك بنجاح`)
+        return NextResponse.json(
+          {
+            message:
+              "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تحديث الحساب بنجاح ",
+            ...userResponse,
+          },
+          { status: 200 }
+        );
+      }
+    }
 
-  }
-
-  if ((userFromToken !== null) && (userFromToken.id === user.id || userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")) {
+    // if ((userFromToken !== null) && (userFromToken.id === user.id || userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")) {
     return NextResponse.json(
-      {  message: "تم تحديث الحساب بنجاح" , ...userResponse},
+      { message: "تم تحديث الحساب بنجاح", ...userResponse },
       { status: 200 }
     );
-  }
-
-
-  return NextResponse.json(
-    { message: "ليس لديك الصلاحية " },
-    { status: 403 }
-  );
-
+    // }
   } catch (error) {
     console.error("Error updating user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -240,17 +261,17 @@ export async function DELETE(request: NextRequest, { params }: Props) {
   try {
     const userFromToken = verifyToken(request);
     const subAdminUser = await prisma.user.findUnique({
-      where:{
-        id: userFromToken?.id
+      where: {
+        id: userFromToken?.id,
       },
-      select:{
-        subadmin:{
-          select:{
-            governorate: true
-          }
-        }
-      }
-    })
+      select: {
+        subadmin: {
+          select: {
+            governorate: true,
+          },
+        },
+      },
+    });
 
     const user = await prisma.user.findUnique({
       where: { id: parseInt(params.id) },
@@ -258,7 +279,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
         customer: true,
         technician: true,
         subadmin: true,
-    },
+      },
     });
     if (!user) {
       return NextResponse.json(
@@ -266,35 +287,42 @@ export async function DELETE(request: NextRequest, { params }: Props) {
         { status: 404 }
       );
     }
-    
 
-    if ((userFromToken !== null) && ((userFromToken.id === user.id || userFromToken.role === "ADMIN") || (userFromToken.role === "SUBADMIN" && subAdminUser?.subadmin?.governorate === user.governorate && user.role !== "SUBADMIN" && user.role !== "ADMIN"))) {
+    if (
+      userFromToken !== null &&
+      (userFromToken.id === user.id ||
+        userFromToken.role === "ADMIN" ||
+        (userFromToken.role === "SUBADMIN" &&
+          subAdminUser?.subadmin?.governorate === user.governorate &&
+          user.role !== "SUBADMIN" &&
+          user.role !== "ADMIN"))
+    ) {
       await prisma.$transaction(async (prisma) => {
         // Delete related entities first
         if (user.customer) {
-            await prisma.customer.delete({ where: { id: user.customer.id } });
+          await prisma.customer.delete({ where: { id: user.customer.id } });
         }
         if (user.technician) {
-            await prisma.technician.delete({ where: { id: user.technician.id } });
+          await prisma.technician.delete({ where: { id: user.technician.id } });
         }
         if (user.subadmin) {
-            await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
+          await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
         }
 
-        await sendRealMail({
-          recipientName: user.fullName,
-          mainContent: `لقد تم حذف حسابك نهائيا من المنصة`,
-          additionalContent: `يمكنك  إخبار المسؤول بذلك عبر الايميل ${process.env.GOOGLE_EMAIL_APP_EVOFIX}`,
-        },{
-          to: user.email,
-          subject:'حذف حساب' , 
-        })
+        await sendRealMail(
+          {
+            recipientName: user.fullName,
+            mainContent: `لقد تم حذف حسابك نهائيا من المنصة`,
+            additionalContent: `يمكنك  إخبار المسؤول بذلك عبر الايميل ${process.env.GOOGLE_EMAIL_APP_EVOFIX}`,
+          },
+          {
+            to: user.email,
+            subject: "حذف حساب",
+          }
+        );
         // Finally, delete the user
         await prisma.user.delete({ where: { id: parseInt(params.id) } });
-    });
-
-  
-
+      });
 
       // await prisma.user.delete({ where: { id: parseInt(params.id) } });
       return NextResponse.json(
@@ -307,7 +335,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       { status: 403 }
     );
   } catch (error) {
-    console.error("Error deleting user" ,error);
+    console.error("Error deleting user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }

@@ -6,7 +6,7 @@ import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { sendRealMail } from "@/lib/email";
 import { verifyToken } from "@/utils/verifyToken";
-// import { sendSms } from "@/lib/sms";
+import { sendSms } from "@/lib/sms";
 import { CostSchema } from "@/utils/validationSchemas";
 
 /**
@@ -16,10 +16,9 @@ import { CostSchema } from "@/utils/validationSchemas";
  *  @access private (technician)
  */
 
-
-interface costDto{
+interface costDto {
   cost: number;
-  resultCheck:string;
+  resultCheck: string;
 }
 export async function PUT(
   request: NextRequest,
@@ -34,13 +33,11 @@ export async function PUT(
       );
     }
 
-    
-
     if (technician.role !== "TECHNICAL") {
       return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
 
-    const  body  = (await request.json()) as costDto;
+    const body = (await request.json()) as costDto;
     const requestId = parseInt(params.id);
 
     const maintenance = await prisma.maintenanceRequest.findUnique({
@@ -75,15 +72,15 @@ export async function PUT(
       );
     }
 
-    if(maintenance.status === "QUOTED"){
+    if (maintenance.status === "QUOTED") {
       return NextResponse.json(
         { message: "هذا الطلب معلق بالفعل" },
         { status: 400 }
       );
     }
 
-    const validate = CostSchema.safeParse(body)
-    if(!validate.success){
+    const validate = CostSchema.safeParse(body);
+    if (!validate.success) {
       return NextResponse.json(
         { message: validate.error.errors[0].message },
         { status: 400 }
@@ -94,11 +91,12 @@ export async function PUT(
       where: {
         id: requestId,
         status: "ASSIGNED",
+        isPaidCheckFee:true
       },
       data: {
         cost: body.cost,
         status: RequestStatus.QUOTED,
-        resultCheck: body.resultCheck
+        resultCheck: body.resultCheck,
       },
       include: {
         user: {
@@ -133,37 +131,39 @@ export async function PUT(
       senderId: technician.id,
       title: "تكلفة الطلب",
       content: `إن التكلفة المقدرة لطلب الصيانة "${maintenanceData.deviceType}" هي "${maintenanceData.cost}" ل.س, إن العطل الذي سيتم صيانته هو "${maintenanceData.resultCheck}" هل توافق لنبدأ بالصيانة  ؟`,
-      requestId: maintenanceRequest.id
+      requestId: maintenanceRequest.id,
     });
 
-    await sendRealMail({
-      recipientName: technician?.fullName,
-      mainContent: `إن التكلفة المقدرة لطلب الصيانة "${maintenanceData.deviceType}" هي "${maintenanceData.cost}" ل.س <br/> إن العطل الذي سيتم صيانته هو "${maintenanceData.resultCheck}"`,
-      additionalContent: `يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة`,
-    },{
-      to: maintenanceRequest.user.email,
-      subject: " تكلفة طلب صيانة",
-      requestId: maintenanceRequest.id
-    });
+    await sendRealMail(
+      {
+        recipientName: technician?.fullName,
+        mainContent: `إن التكلفة المقدرة لطلب الصيانة "${maintenanceData.deviceType}" هي "${maintenanceData.cost}" ل.س <br/> إن العطل الذي سيتم صيانته هو "${maintenanceData.resultCheck}"`,
+        additionalContent: `يمكنك العودة الى المنصة وارسال موافقتك على التكلفة ليتم البدء بالصيانة أو الرفض حتى يتم استرجاع القطعة`,
+      },
+      {
+        to: maintenanceRequest.user.email,
+        subject: " تكلفة طلب صيانة",
+        requestId: maintenanceRequest.id,
+      }
+    );
 
-    // try {
-    //   await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
-    //       إن تكلفة طلب الصيانة الخاص بك
-    //       ${maintenanceData.deviceType} 
-    //       هي ${maintenanceData.cost} ل.س
-    //       إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
-    // } catch (error) {
-    //   console.log(error);
-
-    //   return NextResponse.json(
-    //     {
-    //       message:
-    //         "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
-    //       request: maintenanceData,
-    //     },
-    //     { status: 200 }
-    //   );
-    // }
+    try {
+      await sendSms(`   ترحب بكم EvoFix سيد/ة ${maintenanceRequest.user.fullName}
+          إن تكلفة طلب الصيانة الخاص بك
+          ${maintenanceData.deviceType} 
+          هي ${maintenanceData.cost} ل.س
+          إن كنت موافق قم بالعودة إلى المنصة وتحديث الطلب للموافقة على التكلفة `);
+    } catch (error) {
+      console.log(error);
+      return NextResponse.json(
+        {
+          message:
+            "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تقديم عرض التكلفة بنجاح ",
+          request: maintenanceData,
+        },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -174,9 +174,6 @@ export async function PUT(
     );
   } catch (error) {
     console.error("Error providing cost quote", error);
-    return NextResponse.json(
-      { message: "خطأ من الخادم" },
-      { status: 500  }
-    );
+    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }

@@ -29,8 +29,8 @@ model User {
   Epaid                Epaid[]              @relation("EpaidSender")
   sentSMS              SMS[]                @relation("SMSSender")
   receivedSMS          SMS[]                @relation("SMSRecipient")
-  Review Review[]
-  Invoice Invoice[]
+  Review               Review[]
+  Invoice              Invoice[]
 }
 
 model Customer {
@@ -54,7 +54,7 @@ model SUBADMIN {
 }
 
 model MaintenanceRequest {
-  id                 Int           @id @default(autoincrement())
+  id                 Int            @id @default(autoincrement())
   customerId         Int
   technicianId       Int?
   emailId            Int?
@@ -65,47 +65,49 @@ model MaintenanceRequest {
   deviceModel        String
   deviceImage        String?
   problemDescription String
-  status             RequestStatus @default(PENDING)
-  cost               Float?        @default(0)
-  resultCheck        String?        @default("-")        
-  isPaid             Boolean       @default(false)
-  isPaidCheckFee     Boolean       @default(false)
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  user               User          @relation("UserRequests", fields: [customerId], references: [id])
-  technician         Technician?   @relation("TechnicianAssignments", fields: [technicianId], references: [id])
+  status             RequestStatus  @default(PENDING)
+  cost               Float?         @default(0)
+  resultCheck        String?        @default("-")
+  isPaid             Boolean        @default(false)
+  isPaidCheckFee     Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  user               User           @relation("UserRequests", fields: [customerId], references: [id])
+  technician         Technician?    @relation("TechnicianAssignments", fields: [technicianId], references: [id])
   Epaid              Epaid[]        @relation("EpaidForRequest")
   invoice            Invoice?
   smsMessages        SMS[]
+  Notification       Notification[]
 }
 
 model Notification {
-  id          Int      @id @default(autoincrement())
+  id          Int                 @id @default(autoincrement())
   senderId    Int
   recipientId Int
   requestId   Int?
   content     String
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  isRead      Boolean             @default(false)
+  createdAt   DateTime            @default(now())
   title       String
-  recipient   User     @relation("notificationsRecipient", fields: [recipientId], references: [id])
-  sender      User     @relation("notificationsSender", fields: [senderId], references: [id])
+  recipient   User                @relation("notificationsRecipient", fields: [recipientId], references: [id])
+  sender      User                @relation("notificationsSender", fields: [senderId], references: [id])
+  request     MaintenanceRequest? @relation(fields: [requestId], references: [id])
 }
 
 model Email {
-  id          Int                 @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   email       String
   subject     String
   content     String
   recipientId Int
-  sentAt      DateTime            @default(now())
-  recipient   User                @relation("EmailRecipient", fields: [recipientId], references: [id])
+  sentAt      DateTime @default(now())
+  recipient   User     @relation("EmailRecipient", fields: [recipientId], references: [id])
 }
 
 model Epaid {
   id              Int                @id @default(autoincrement())
   senderId        Int
-  requestId       Int                
+  requestId       Int
   OperationNumber BigInt
   amount          Float?
   CheckFee        Float?
@@ -118,10 +120,10 @@ model Epaid {
 
 model Review {
   id        Int      @id @default(autoincrement())
-  userId    Int      
+  userId    Int
   rating    Int
   comment   String?
-  isActive  Boolean   @default(false)
+  isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 }
@@ -164,13 +166,33 @@ model services {
   DevicesModels DevicesModels[]
 }
 
-model DevicesModels{
-  id  Int @id @default(autoincrement())
-  serviceID Int
-  title   String
-  isActive  Boolean @default(true)
-  createAt DateTime @default(now())
-  services  services @relation(fields: [serviceID], references: [id])
+model DevicesModels {
+  id        Int       @id @default(autoincrement())
+  serviceID Int?
+  title     String
+  isActive  Boolean   @default(true)
+  createAt  DateTime  @default(now())
+  services  services? @relation(fields: [serviceID], references: [id])
+}
+
+model TermsOfUsePolicy {
+  id        Int      @id @default(autoincrement())
+  version   String   @default("1.0")
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+}
+
+model FAQ {
+  id          Int      @id @default(autoincrement())
+  question    String
+  answer      String
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isPublished Boolean  @default(true)
 }
 
 enum Role {

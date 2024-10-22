@@ -155,7 +155,7 @@ export async function POST(
 
     const data = {
       title: "طلب صيانة جديد",
-      userTitle: "دفع أجور الكشف",
+      userTitle: "استلام الطلب",
       address: maintenance.address,
       deviceType: maintenance.deviceType,
       deviceModel: maintenance.deviceModel,

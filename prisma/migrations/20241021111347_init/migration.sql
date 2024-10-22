@@ -67,7 +67,7 @@ CREATE TABLE "MaintenanceRequest" (
     "problemDescription" TEXT NOT NULL,
     "status" "RequestStatus" NOT NULL DEFAULT 'PENDING',
     "cost" DOUBLE PRECISION DEFAULT 0,
-    "resultCheck" TEXT NOT NULL DEFAULT '-',
+    "resultCheck" TEXT DEFAULT '-',
     "isPaid" BOOLEAN NOT NULL DEFAULT false,
     "isPaidCheckFee" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -172,12 +172,38 @@ CREATE TABLE "services" (
 -- CreateTable
 CREATE TABLE "DevicesModels" (
     "id" SERIAL NOT NULL,
-    "serviceID" INTEGER NOT NULL,
+    "serviceID" INTEGER,
     "title" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "DevicesModels_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TermsOfUsePolicy" (
+    "id" SERIAL NOT NULL,
+    "version" TEXT NOT NULL DEFAULT '1.0',
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "TermsOfUsePolicy_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FAQ" (
+    "id" SERIAL NOT NULL,
+    "question" TEXT NOT NULL,
+    "answer" TEXT NOT NULL,
+    "category" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isPublished" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "FAQ_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -208,6 +234,9 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_recipientId_fkey" FOREIG
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "MaintenanceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Email" ADD CONSTRAINT "Email_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -235,4 +264,4 @@ ALTER TABLE "SMS" ADD CONSTRAINT "SMS_recipientId_fkey" FOREIGN KEY ("recipientI
 ALTER TABLE "SMS" ADD CONSTRAINT "SMS_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "MaintenanceRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "DevicesModels" ADD CONSTRAINT "DevicesModels_serviceID_fkey" FOREIGN KEY ("serviceID") REFERENCES "services"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "DevicesModels" ADD CONSTRAINT "DevicesModels_serviceID_fkey" FOREIGN KEY ("serviceID") REFERENCES "services"("id") ON DELETE SET NULL ON UPDATE CASCADE;

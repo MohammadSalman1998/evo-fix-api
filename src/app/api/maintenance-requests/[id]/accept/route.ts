@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       recipientId: maintenanceRequest.user.id,
       senderId: user.id,
       title: "قبول تكلفة الطلب",
-      content: `شكرا لك سيد/ة $${maintenanceRequest.user.fullName} سيتم البدء بالصيانة وإخبارك عند الإنجاز`,
+      content: `شكرا لك سيد/ة ${maintenanceRequest.user.fullName} سيتم البدء بالصيانة وإخبارك عند الإنجاز`,
       requestId: maintenanceRequest.id
     });
 

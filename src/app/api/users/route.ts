@@ -9,7 +9,7 @@ import { Role } from "@prisma/client";
 import { generateJWT } from "@/utils/generateToken";
 import { createNotification } from "@/lib/notification";
 import { sendRealMail } from "@/lib/email";
-// import { sendSms } from "@/lib/sms";
+import { sendSms } from "@/lib/sms";
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -228,6 +228,13 @@ export async function POST(request: NextRequest) {
         isActive: true,
       },
     });
+    const tokenPayload = {
+      id: newUser.id,
+      role: newUser.role,
+      fullName: newUser.fullName,
+    };
+
+    const token = generateJWT(tokenPayload);
 
   const notificationNewTechAccountData = {
       title: "طلب تفعيل حساب تقني",
@@ -258,19 +265,29 @@ export async function POST(request: NextRequest) {
             subject:notificationNewTechAccountData.title , 
           })
 
-          //  sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
-          //   يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
+         
+
+            try {
+              await sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
+                يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
+            } catch (error) {
+              console.log(error);
+      
+              return NextResponse.json(
+                {
+                  message:
+                    "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تسجيل الحساب بنجاح ",
+                  ...userResponse,
+                  token
+                },
+                { status: 201 }
+              );
+            }
         }
       }
     }
 
-    const tokenPayload = {
-      id: newUser.id,
-      role: newUser.role,
-      fullName: newUser.fullName,
-    };
-
-    const token = generateJWT(tokenPayload);
+    
     return NextResponse.json(
       { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
       { status: 201 }

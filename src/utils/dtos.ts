@@ -1,17 +1,24 @@
 // src\utils\dtos.ts
 
-import { Role, typeEpaid } from "@prisma/client";
+import { RequestStatus, Role, typeEpaid } from "@prisma/client";
 
 export interface CreateServiceDto {
-  icon?: JSX.Element;
   title: string;
-  description: string;
 }
 
 export interface UpdateServiceDto {
-  icon?: string;
+  id: number;
   title?: string;
-  description?: string;
+  isActive?: boolean;
+}
+
+export interface CreateModelsDto {
+  serviceID: number;
+  title: string;
+}
+export interface UpdateModelsDto {
+  serviceID?: number;
+  title?: string;
   isActive?: boolean;
 }
 
@@ -65,6 +72,19 @@ export interface CreateMaintenance_RequestDto {
   phoneNO: string;
   address: string;
   problemDescription: string;
+}
+export interface UpdateMaintenance_RequestDto {
+  deviceType?: string;
+  deviceModel?: string;
+  governorate?: string;
+  phoneNO?: string;
+  address?: string;
+  problemDescription?: string;
+  status?: RequestStatus;
+  cost?: number;
+  resultCheck?: string;
+  isPaid?: boolean;
+  isPaidCheckFee?: boolean;
 }
 
 export interface CreateNotificationDto {
@@ -162,7 +182,7 @@ export interface newInvoice {
   userId: number;
   requestId: number;
   amount: number;
-  issueDate: Date  ;
+  issueDate: Date;
   dueDate: Date;
   isPaid: boolean;
   paidAt?: Date;
@@ -178,4 +198,28 @@ export interface createReviewDto {
   userId: number;
   rating: number;
   comment: string;
+}
+
+export interface createTermsOfUsePolicyDto {
+  version?: string;
+  title: string;
+  content: string;
+}
+export interface updateTermsOfUsePolicyDto {
+  version?: string;
+  title?: string;
+  content?: string;
+  isActive?: boolean;
+}
+
+export interface createFAQDto {
+  question: string;
+  answer: string;
+  category?: string;
+}
+export interface UpdateFAQDto {
+  question?: string;
+  answer?: string;
+  category?: string;
+  isPublished: boolean;
 }

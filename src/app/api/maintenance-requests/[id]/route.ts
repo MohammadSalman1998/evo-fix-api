@@ -5,6 +5,8 @@ import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
 import { sendRealMail } from "@/lib/email";
 import { Role } from "@prisma/client";
+import { UpdateMaintenance_RequestDto } from "@/utils/dtos";
+import { updateRequest } from "@/lib/requests";
 
 /**
  *  @method DELETE
@@ -133,7 +135,6 @@ export async function DELETE(
 
     // Send email to the technician
     if (maintenanceRequest.technician && maintenanceRequest.technician.user) {
-    
       // Create notification for the technician
       await createNotification({
         recipientId: maintenanceRequest.technician?.user.id,
@@ -142,17 +143,20 @@ export async function DELETE(
         content: `تم حذف الطلب من قائمة الطلبات  ${maintenance.deviceType}`,
       });
 
-      await sendRealMail({
-        recipientName: maintenanceRequest.technician?.user.fullName,
-        mainContent: `تم حذف الطلب من قائمة الطلبات ${maintenance.deviceType}`,
-      },{
-        to: maintenanceRequest.technician.user.email,
-        subject: " حذف طلب صيانة",
-      });
+      await sendRealMail(
+        {
+          recipientName: maintenanceRequest.technician?.user.fullName,
+          mainContent: `تم حذف الطلب من قائمة الطلبات ${maintenance.deviceType}`,
+        },
+        {
+          to: maintenanceRequest.technician.user.email,
+          subject: " حذف طلب صيانة",
+        }
+      );
     }
 
     await createNotification({
-      recipientId:user.id,
+      recipientId: user.id,
       senderId: user.id,
       title: "حذف طلب صيانة",
       content: `تم حذف الطلب من قائمة الطلبات  ${maintenance.deviceType}`,
@@ -164,9 +168,75 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error Delete order", error);
+    return NextResponse.json({ message: " خطأ من الخادم " }, { status: 500 });
+  }
+}
+
+/**
+ *  @method PUT
+ *  @route  ~/api/maintenance-requests/:id
+ *  @desc   update the  maintenance request
+ *  @access private ( ADMIN - SUBADMIN By Governorate)
+ */
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const account = verifyToken(request);
+    const requestId = parseInt(params.id);
+    const requestMaint = await prisma.maintenanceRequest.findUnique({
+      where: { id: requestId },
+    });
+    const user = await prisma.user.findUnique({
+      where: { id: account?.id },
+    });
+
+    if (
+      !account ||
+      account.role === Role.USER ||
+      account.role === Role.TECHNICAL
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية" },
+        { status: 403 }
+      );
+    }
+
+    if (
+      account.role === Role.SUBADMIN &&
+      user?.governorate !== requestMaint?.governorate
+    ) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية" },
+        { status: 403 }
+      );
+    }
+
+    const body = (await request.json()) as UpdateMaintenance_RequestDto;
+
+    const data: UpdateMaintenance_RequestDto = {
+      deviceType: body.deviceType,
+      deviceModel: body.deviceModel,
+      governorate: body.governorate,
+      phoneNO: body.phoneNO,
+      address: body.address,
+      problemDescription: body.problemDescription,
+      status: body.status,
+      cost: body.cost,
+      resultCheck: body.resultCheck,
+      isPaid: body.isPaid,
+      isPaidCheckFee: body.isPaidCheckFee,
+    };
+
+    const RequestUpdatting = await updateRequest(requestId, data);
     return NextResponse.json(
-      { message: " خطأ من الخادم أم أن الطلب محذوف بالفعل" },
-      { status: 500 | 401 }
+      { message: "تم التعديل بنجاح", RequestUpdatting },
+      { status: 200 }
     );
+  } catch (error) {
+    console.error("Error update order", error);
+    return NextResponse.json({ message: " خطأ من الخادم " }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
-
+import { UpdateMaintenance_RequestDto } from "@/utils/dtos";
 
 export async function PendingRequests() {
   try {
@@ -21,13 +21,13 @@ export async function PendingRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
-        deviceModel:true,
-        deviceImage:true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        deviceModel: true,
+        deviceImage: true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true,
+        createdAt: true,
       },
     });
     return requests;
@@ -56,14 +56,19 @@ export async function Requests(TechID: number, statusRequest: RequestStatus) {
         id: true,
         governorate: true,
         deviceType: true,
-        deviceModel:true,
-        deviceImage:true,
+        deviceModel: true,
+        deviceImage: true,
         problemDescription: true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true,
+        createdAt: true,
+        technician:{
+          select:{
+            user:true
+          }
+        }
       },
     });
     return requests;
@@ -93,13 +98,13 @@ export async function QuotedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
-        deviceModel:true,
-        deviceImage:true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        deviceModel: true,
+        deviceImage: true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true
+        createdAt: true,
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -129,13 +134,13 @@ export async function InProgressRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
-        deviceModel:true,
-        deviceImage:true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        deviceModel: true,
+        deviceImage: true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true
+        createdAt: true,
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -165,13 +170,13 @@ export async function RejectedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
-        deviceModel:true,
-        deviceImage:true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        deviceModel: true,
+        deviceImage: true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true
+        createdAt: true,
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -201,13 +206,13 @@ export async function CompletedRequests() {
         governorate: true,
         deviceType: true,
         problemDescription: true,
-        deviceModel:true,
-        deviceImage:true,
-        isPaid:true,
-        isPaidCheckFee:true,
-        cost:true,
+        deviceModel: true,
+        deviceImage: true,
+        isPaid: true,
+        isPaidCheckFee: true,
+        cost: true,
         status: true,
-        createdAt:true
+        createdAt: true,
       },
     });
     return NextResponse.json(requests, { status: 200 });
@@ -233,13 +238,13 @@ export async function AllTechTasks(TechID: number) {
         id: true,
         governorate: true,
         deviceType: true,
-        deviceModel:true,
-        deviceImage:true,
+        deviceModel: true,
+        deviceImage: true,
         problemDescription: true,
         status: true,
         cost: true,
         isPaid: true,
-        isPaidCheckFee:true,
+        isPaidCheckFee: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -288,13 +293,13 @@ export async function AllRequests() {
         },
         governorate: true,
         deviceType: true,
-        deviceModel:true,
-        deviceImage:true,
+        deviceModel: true,
+        deviceImage: true,
         problemDescription: true,
         status: true,
         cost: true,
         isPaid: true,
-        isPaidCheckFee:true,
+        isPaidCheckFee: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -315,7 +320,7 @@ export async function AllRequestsByGovernorate(governorate: string) {
     }
 
     const requests = await prisma.maintenanceRequest.findMany({
-        where:{governorate:governorate},
+      where: { governorate: governorate },
       select: {
         id: true,
         user: {
@@ -344,13 +349,13 @@ export async function AllRequestsByGovernorate(governorate: string) {
         },
         governorate: true,
         deviceType: true,
-        deviceModel:true,
-        deviceImage:true,
+        deviceModel: true,
+        deviceImage: true,
         problemDescription: true,
         status: true,
         cost: true,
         isPaid: true,
-        isPaidCheckFee:true,
+        isPaidCheckFee: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -371,7 +376,7 @@ export async function AllUserRequests(userID: number) {
     }
 
     const requests = await prisma.maintenanceRequest.findMany({
-        where:{customerId: userID},
+      where: { customerId: userID },
       select: {
         id: true,
         user: {
@@ -385,13 +390,13 @@ export async function AllUserRequests(userID: number) {
         },
         governorate: true,
         deviceType: true,
-        deviceModel:true,
-        deviceImage:true,
+        deviceModel: true,
+        deviceImage: true,
         problemDescription: true,
         status: true,
         cost: true,
         isPaid: true,
-        isPaidCheckFee:true,
+        isPaidCheckFee: true,
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
@@ -400,5 +405,75 @@ export async function AllUserRequests(userID: number) {
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
+  }
+}
+
+export async function editActiveIsPaid(id: number) {
+  try {
+    const activePaid = await prisma.maintenanceRequest.update({
+      where: { id: id },
+      data: {
+        isPaid: true,
+      },
+    });
+    return activePaid;
+  } catch (error) {
+    console.log("error edit active of ePaid", error);
+    throw new Error("error edit active of ePaid");
+  }
+}
+
+export async function editActiveIsPaidOfCheck(id: number) {
+  try {
+    const activecheckPaid = await prisma.maintenanceRequest.update({
+      where: { id: id },
+      data: {
+        isPaidCheckFee: true,
+      },
+    });
+    return activecheckPaid;
+  } catch (error) {
+    console.log("error edit active of Check Paid", error);
+    throw new Error("error edit active of Check Paid");
+  }
+}
+
+export async function updateRequest(
+  id: number,
+  {
+    deviceType,
+    deviceModel,
+    governorate,
+    phoneNO,
+    address,
+    problemDescription,
+    status,
+    cost,
+    resultCheck,
+    isPaid,
+    isPaidCheckFee,
+  }: UpdateMaintenance_RequestDto
+) {
+  try {
+    const updateRequest = await prisma.maintenanceRequest.update({
+      where: { id },
+      data: {
+        deviceType,
+        deviceModel,
+        governorate,
+        phoneNO,
+        address,
+        problemDescription,
+        status,
+        cost,
+        resultCheck,
+        isPaid,
+        isPaidCheckFee,
+      },
+    });
+    return updateRequest
+  } catch (error) {
+    console.log("error update request maintenance", error);
+    throw new Error("error update request maintenance");
   }
 }
