@@ -107,8 +107,8 @@ export async function POST(request: NextRequest) {
     const contentData = `نوع الجهاز: "${data.deviceType}" <br/> موديل الجهاز: "${data.deviceModel}" <br/> العنوان: "${data.address}" <br/> المحافظة: "${data.governorate}" <br/> رقم الجوال: "${data.phoneNo}" <br/> <br/>  <img width="100%" height="20%" src="${newRequest.deviceImage}" alt="requestImage">`;
     const contentDataForNoti = `نوع الجهاز: "${data.deviceType}"  موديل الجهاز: "${data.deviceModel}"  العنوان: "${data.address}"  المحافظة: "${data.governorate}"  رقم الجوال: "${data.phoneNo}"`;
     const userContent = `سيد/ة ${data.userName}  تم إحالة طلبك: "${data.deviceType}"  إلى التقني المختص وسيتم التواصل معك عبر الرقم "${data.phoneNo}" عند استلام الطلب `;
-    const seconderyContent = 'سارع وقم باستلام الطلب'
-    
+    const seconderyContent = "سارع وقم باستلام الطلب";
+
     for (const technician of technicians) {
       await createNotification({
         recipientId: technician.id,
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
           recipientName: technician.fullName,
           mainContent: "يوجد طلب صيانة جديد مناسب لك",
           additionalContent: contentData,
-          seconderyContent:seconderyContent
+          seconderyContent: seconderyContent,
         },
         {
           to: technician.email,
@@ -141,20 +141,20 @@ export async function POST(request: NextRequest) {
       content: userContent,
     });
 
-  //   if (userData) {
-  //     await sendRealMail({
-  //       to: userData.email,
-  //       subject: data.title,
-  //       requestId: newRequest.id,
-  //       html: `
-  //   <div dir="rtl">
-  //     <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-  //     <h1>سيد/ة ${user.fullName}</h1>
-  //     <h3>${userContent}</h3>
-  //   </div>
-  // `,
-  //     });
-  //   }
+    //   if (userData) {
+    //     await sendRealMail({
+    //       to: userData.email,
+    //       subject: data.title,
+    //       requestId: newRequest.id,
+    //       html: `
+    //   <div dir="rtl">
+    //     <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
+    //     <h1>سيد/ة ${user.fullName}</h1>
+    //     <h3>${userContent}</h3>
+    //   </div>
+    // `,
+    //     });
+    //   }
 
     return NextResponse.json(
       { message: "تم إنشاء طلب الصيانة بنجاح", request: newRequest },

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { UpdateMaintenance_RequestDto } from "@/utils/dtos";
+import dayjs from 'dayjs';
+
 
 export async function PendingRequests() {
   try {
@@ -30,7 +32,11 @@ export async function PendingRequests() {
         createdAt: true,
       },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
@@ -71,7 +77,11 @@ export async function Requests(TechID: number, statusRequest: RequestStatus) {
         }
       },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching  maintenance requests", error);
     throw new Error("خطأ من الخادم");
@@ -107,7 +117,11 @@ export async function QuotedRequests() {
         createdAt: true,
       },
     });
-    return NextResponse.json(requests, { status: 200 });
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -143,7 +157,11 @@ export async function InProgressRequests() {
         createdAt: true,
       },
     });
-    return NextResponse.json(requests, { status: 200 });
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -179,7 +197,11 @@ export async function RejectedRequests() {
         createdAt: true,
       },
     });
-    return NextResponse.json(requests, { status: 200 });
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -215,7 +237,11 @@ export async function CompletedRequests() {
         createdAt: true,
       },
     });
-    return NextResponse.json(requests, { status: 200 });
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -249,7 +275,11 @@ export async function AllTechTasks(TechID: number) {
       },
       orderBy: { createdAt: "desc" },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
@@ -304,7 +334,11 @@ export async function AllRequests() {
       },
       orderBy: { createdAt: "desc" },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
@@ -360,7 +394,11 @@ export async function AllRequestsByGovernorate(governorate: string) {
       },
       orderBy: { createdAt: "desc" },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
@@ -401,7 +439,11 @@ export async function AllUserRequests(userID: number) {
       },
       orderBy: { createdAt: "desc" },
     });
-    return requests;
+    const formattedRequests = requests.map(request => ({
+      ...request,
+      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+    }));
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     throw new Error("Failed");
