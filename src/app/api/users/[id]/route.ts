@@ -125,21 +125,24 @@ export async function PUT(request: NextRequest, { params }: Props) {
       );
     }
 
-    if (
-      userFromToken === null ||
-      userFromToken.id !== user.id ||
-      userFromToken.role !== "ADMIN"
-    ) {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية " },
-        { status: 403 }
-      );
-    }
+    // if (
+    //   userFromToken === null ||
+    //   userFromToken.id !== user.id ||
+    //   userFromToken.role !== "ADMIN"
+    // ) {
+      
+    //   return NextResponse.json(
+    //     { message: "ليس لديك الصلاحية " },
+    //     { status: 403 }
+    //   );
+    // }
 
     if (body.password) {
       const salt = await bcrypt.genSalt(10);
       body.password = await bcrypt.hash(body.password, salt);
     }
+
+    if ((userFromToken !== null) && (userFromToken.id === user.id || userFromToken.role === "ADMIN" || userFromToken.role === "SUBADMIN")) {
 
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(params.id) },
@@ -244,7 +247,12 @@ export async function PUT(request: NextRequest, { params }: Props) {
       { message: "تم تحديث الحساب بنجاح", ...userResponse },
       { status: 200 }
     );
-    // }
+    }else{
+      return NextResponse.json(
+            { message: "ليس لديك الصلاحية " },
+            { status: 403 }
+          );
+    }
   } catch (error) {
     console.error("Error updating user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
