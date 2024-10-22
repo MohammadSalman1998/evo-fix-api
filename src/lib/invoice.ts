@@ -82,6 +82,7 @@ export async function getMyInvoices( userId : number) {
           },
         },
       },
+      orderBy:{paidAt:"desc"}
     });
 
     return myInvoices;
@@ -122,6 +123,7 @@ export async function getByGovernorateInvoices( governorate : string) {
             },
           },
         },
+        orderBy:{paidAt:"desc"}
       });
   
       return InvoicesByGovernorate;
@@ -160,6 +162,7 @@ export async function getByGovernorateInvoices( governorate : string) {
             },
           },
         },
+        orderBy:{paidAt:"desc"}
       });
   
       return allInvoices;

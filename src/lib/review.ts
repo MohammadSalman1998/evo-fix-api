@@ -41,6 +41,7 @@ export async function createReview({
             }
           }
         },
+        orderBy:{createdAt:"desc"}
       });
   
       return AllReviews;
@@ -65,6 +66,7 @@ export async function createReview({
             }
           }
         },
+        orderBy:{createdAt:"desc"}
       });
   
       return AllReviewsByGovernorate;
@@ -103,6 +105,7 @@ export async function getAllReviewsActive(){
           }
         }
       },
+      orderBy:{createdAt:"desc"}
     });
 
     return AllReviews;

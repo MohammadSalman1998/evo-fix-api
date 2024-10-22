@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         technician: true,
         subadmin: true,
       },
+      orderBy:{createdAt:"desc"}
     });
 
     const subAdmin = await prisma.user.findUnique({
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
         customer: true,
         technician: true,
       },
+      orderBy:{createdAt:"desc"}
     });
 
      const countUsers = users.length;
@@ -227,6 +229,7 @@ export async function POST(request: NextRequest) {
         },
         isActive: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const tokenPayload = {
       id: newUser.id,

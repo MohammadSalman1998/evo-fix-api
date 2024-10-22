@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
         technician: { specialization: body.deviceType },
         governorate: body.governorate,
       },
+      orderBy:{createdAt:"desc"}
     });
 
     const data = {

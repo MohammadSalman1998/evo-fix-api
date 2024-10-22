@@ -71,7 +71,8 @@ export async function getFAQ(id: number) {
 export async function getAllFAQ() {
   try {
     const FAQ = await prisma.fAQ.findMany({
-        where:{isPublished:true}
+        where:{isPublished:true},
+        orderBy:{createdAt:"desc"}
     });
 
     return FAQ;

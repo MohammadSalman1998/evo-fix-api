@@ -31,6 +31,7 @@ export async function PendingRequests() {
         status: true,
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,
@@ -76,6 +77,7 @@ export async function Requests(TechID: number, statusRequest: RequestStatus) {
           }
         }
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,
@@ -116,6 +118,7 @@ export async function QuotedRequests() {
         status: true,
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,
@@ -156,6 +159,7 @@ export async function InProgressRequests() {
         status: true,
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,
@@ -196,6 +200,7 @@ export async function RejectedRequests() {
         status: true,
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,
@@ -236,6 +241,7 @@ export async function CompletedRequests() {
         status: true,
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
     const formattedRequests = requests.map(request => ({
       ...request,

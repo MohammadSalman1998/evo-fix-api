@@ -34,6 +34,7 @@ export async function getAllTechnician() {
         },
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
 
     return allTechnician;
@@ -75,6 +76,7 @@ export async function getAllTechnicianByGovernorate(governorate: string) {
         },
         createdAt: true,
       },
+      orderBy:{createdAt:"desc"}
     });
 
     return TechnicianByGovernorate;
@@ -105,6 +107,7 @@ export async function getAllSubAdmin() {
           },
           createdAt: true,
         },
+        orderBy:{createdAt:"desc"}
       });
   
       return allSubAdmin;
