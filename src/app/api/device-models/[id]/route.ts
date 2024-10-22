@@ -1,5 +1,5 @@
 // src\app\api\device-models\[id]\route.ts
-import { deleteDeviceModel, getDeviceModelById, updateDeviceModel } from "@/lib/services";
+import { deleteDeviceModel, updateDeviceModel } from "@/lib/services";
 import prisma from "@/utils/db";
 import { UpdateModelsDto } from "@/utils/dtos";
 import { verifyToken } from "@/utils/verifyToken";
@@ -107,37 +107,37 @@ export async function DELETE(request: NextRequest, { params }: Props) {
  *  @access public
  */
 
-export async function Get(request: NextRequest, { params }: Props) {
-    try {
-      const devicemodelID = parseInt(params.id);
-      const user = verifyToken(request);
-    if (!user) {
-      return NextResponse.json(
-        { message: "قم بتسجيل الدخول أولا" },
-        { status: 403 }
-      );
-    }
+// export async function Get(request: NextRequest, { params }: Props) {
+//     try {
+//       const devicemodelID = parseInt(params.id);
+//       const user = verifyToken(request);
+//     if (!user) {
+//       return NextResponse.json(
+//         { message: "قم بتسجيل الدخول أولا" },
+//         { status: 403 }
+//       );
+//     }
 
   
-      const devicemodel = await prisma.devicesModels.findUnique({
-        where: { id: devicemodelID },
-      });
+//       const devicemodel = await prisma.devicesModels.findUnique({
+//         where: { id: devicemodelID },
+//       });
   
-      if (!devicemodel) {
-        return NextResponse.json(
-          { message: "هذا الموديل غير متوفر" },
-          { status: 400 }
-        );
-      }
+//       if (!devicemodel) {
+//         return NextResponse.json(
+//           { message: "هذا الموديل غير متوفر" },
+//           { status: 400 }
+//         );
+//       }
 
-      const getdevicemodel = await getDeviceModelById(devicemodelID);
+//       const getdevicemodel = await getDeviceModelById(devicemodelID);
   
-      return NextResponse.json(
-        { getdevicemodel },
-        { status: 200 }
-      );
-    } catch (error) {
-      console.log("error get a devicemodel", error);
-      return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
-    }
-  }
+//       return NextResponse.json(
+//         { getdevicemodel },
+//         { status: 200 }
+//       );
+//     } catch (error) {
+//       console.log("error get a devicemodel", error);
+//       return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+//     }
+//   }
