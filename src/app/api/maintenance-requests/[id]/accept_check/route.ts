@@ -169,27 +169,27 @@ export async function POST(
     const userContent = `سيد/ة ${data.userName}- شكرا لك - تم إحالة طلبك "${data.deviceType}" - إلى التقني المختص وسيتم التواصل معك عبر الرقم "${data.phoneNo}" `;
 
     
-
+await Promise.all([
     // Create notification for the technician
-    await createNotification({
+     createNotification({
       recipientId: technician?.id || 0,
       senderId: user.id,
       title: data.userTitle,
       content: contentData,
       requestId: data.requestId,
-    });
+    }),
 
     // Create notification for the user
-    await createNotification({
+     createNotification({
       recipientId: user.id,
       senderId: user.id,
       title: data.userTitle,
       content: userContent,
       requestId: data.requestId,
-    });
+    }),
 
     // Send email to the technician
-    await sendRealMail({
+     sendRealMail({
       recipientName: technician?.fullName,
       mainContent: `لقد تم دفع أجور الكشف لطلب الصيانة "${maintenanceData.deviceType}"`,
       additionalContent: `يمكنك الذهاب إلى العنوان المحدد في بيانات الطلب التالية والكشف عليه <br/> ${contentEmailData}`,
@@ -197,11 +197,11 @@ export async function POST(
       to: technician?.email || "",
       subject: data.userTitle,
       requestId: data.requestId,
-    });
+    }),
 
     // Send email to the user
 
-    await sendRealMail({
+     sendRealMail({
       recipientName: `${data.userName} شكرا لك`,
       mainContent: `لقد تم دفع أجور الكشف لطلب الصيانة "${maintenanceData.deviceType}" بنجاح`,
       additionalContent: `سيتواصل معك التقني المختص على الرقم "${data.phoneNo}" ويحدد موعد مناسب لك ليتم تشخيص العطل`,
@@ -209,7 +209,8 @@ export async function POST(
       to: maintenance.user.email,
       subject: data.userTitle,
       requestId: data.requestId,
-    });
+    }),
+  ])
 
     return NextResponse.json({
       message: "تم دفع أجور الكشف وإحالة الطلب إلى التقنيين بنجاح",

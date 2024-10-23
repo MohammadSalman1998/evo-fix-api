@@ -203,36 +203,36 @@ export async function POST(
     const contentData = `نوع الجهاز ${data.deviceType} - موديل الجهاز ${data.deviceModel} - العنوان ${data.address} - المحافظة ${data.governorate} - رقم الجوال ${data.phoneNo}`;
     const contentEmailData = `نوع الجهاز: "${data.deviceType}" <br/> موديل الجهاز: "${data.deviceModel}" <br/> العنوان: "${data.address}" <br/> المحافظة: "${data.governorate}" <br/> رقم الجوال: "${data.phoneNo}"`;
     const userContent = `سيد/ة ${data.userName} - تم استكمال رسوم الصيانة بنجاح للطلب "${data.deviceType}" - سيتم الاتصال بك على الرقم: "${data.phoneNo}" وإعادة الجهاز إليك `;
-
+    await Promise.all([
     // Create notification for the technician
-    await createNotification({
+     createNotification({
       recipientId: technician?.id || 0,
       senderId: user.id,
       title: data.title,
       content: contentData,
       requestId: data.requestId,
-    });
+    }),
 
     // Create notification for the subAdmin
-    await createNotification({
+     createNotification({
       recipientId: subAdmin?.id || 0,
       senderId: user.id,
       title: data.title,
       content: contentData,
       requestId: data.requestId,
-    });
+    }),
 
     // Create notification for the user
-    await createNotification({
+     createNotification({
       recipientId: user.id,
       senderId: user.id,
       title: data.userTitle,
       content: userContent,
       requestId: data.requestId,
-    });
+    }),
 
     // Create email for the technician
-    await sendRealMail({
+     sendRealMail({
       recipientName: technician?.fullName,
       mainContent: "تم استكمال رسوم الصيانة بنجاح يمكنك استعادة الطلب",
       additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
@@ -240,10 +240,10 @@ export async function POST(
       to: technician?.email || "",
       subject: data.title,
       requestId: data.requestId,
-    });
+    }),
 
     // Create email for the subAdmin
-    await sendRealMail({
+     sendRealMail({
       recipientName: subAdmin?.fullName,
       mainContent: "تم استكمال رسوم الصيانة بنجاح ",
       additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
@@ -251,10 +251,10 @@ export async function POST(
       to: subAdmin?.email || "",
       subject: data.title,
       requestId: data.requestId,
-    });
+    }),
 
     // Create email for the user
-    await sendRealMail({
+     sendRealMail({
       recipientName: technician?.fullName,
       mainContent: "شكرا لك تم استكمال رسوم الصيانة بنجاح ",
       additionalContent: `سيتم التواصل معك على الرقم "${data.phoneNo}" لاستعادة الطلب لديك`,
@@ -262,7 +262,8 @@ export async function POST(
       to: maintenanceCompleted.user.email,
       subject: data.userTitle,
       requestId: data.requestId,
-    });
+    })
+  ])
 
     return NextResponse.json({
       message: "تم دفع رسوم الصيانة بنجاح سيتم الاتصال بك وإعادة الجهاز مباشرة",
