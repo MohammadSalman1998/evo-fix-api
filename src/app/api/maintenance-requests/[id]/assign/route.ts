@@ -29,6 +29,13 @@ export async function PUT(
     if (technician.role !== "TECHNICAL") {
       return NextResponse.json({ message: "خاص بالتقني" }, { status: 403 });
     }
+    const user = await prisma.user.findUnique({
+      where:{id:technician.id}
+    })
+
+    if(!user?.isActive){
+      return NextResponse.json({ message: "ليس لديك الصلاحية بعد لاستلام مهام صيانة" }, { status: 403 })
+    }
 
     const requestId = parseInt(params.id);
 
