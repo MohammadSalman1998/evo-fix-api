@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
           body.role === Role.SUBADMIN
             ? {
                 create: {
-                  department: "مدير محافظة بقسم الصيانة",
+                  department: `مدير محافظة ${body.governorateAdmin || body.governorate} بقسم الصيانة`,
                   governorate: body.governorateAdmin || body.governorate,
                 },
               }

@@ -66,11 +66,12 @@ export async function POST(
       );
     }
 
-  
       const userSmsPaid = await prisma.sMS.findFirst({
         where: {
           operationNumber: body.OperationNumber,
-          amount: maintenanceCompleted.cost,
+          amount: {
+            gte: maintenanceCompleted.cost || 0
+          },
         },
       });
   
