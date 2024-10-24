@@ -1,8 +1,9 @@
 // src\app\api\services\route.ts
 
-import { createServices, GetAllServices } from "@/lib/services";
+import { GetAllServices } from "@/lib/services";
 import prisma from "@/utils/db";
 import { CreateServiceDto } from "@/utils/dtos";
+import { uploadImage } from "@/utils/uploadImage";
 import { verifyToken } from "@/utils/verifyToken";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
  *  @access private (only user Admin )
  */
 
+
 export async function POST(request: NextRequest) {
   try {
     const admin = verifyToken(request);
@@ -22,11 +24,43 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    const body = (await request.json()) as CreateServiceDto;
 
-    const data: CreateServiceDto = { title: body.title };
+    const formData = await request.formData();
+    const body: Partial<CreateServiceDto> = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+    };
 
-    const service = await createServices(data);
+    const image = formData.get("serviceImage") as File | null;
+
+    if (
+      body.title === null ||
+      body.description === null
+    ) {
+      return NextResponse.json({ message: "هناك حقل فارغ" }, { status: 400 });
+    }
+
+    let serviceImageURL = "https://res.cloudinary.com/dnzzud7om/image/upload/v1729771563/EvoFix-Requests-Images/pbeesp8odpuf5njtkiov.jpg"
+    if (image && image instanceof File) {
+      const imageBuffer = await image.arrayBuffer();
+      serviceImageURL = await uploadImage(Buffer.from(imageBuffer));
+    }
+
+    const oldService = await prisma.services.findFirst({
+      where:{title: body.title}
+    })
+
+    if(oldService){
+      return NextResponse.json({message: "هذه الخدمة موجودة بالفعل"},{status:400})
+    }
+
+    const service = await prisma.services.create({
+      data:{
+        title: body.title!,
+        description: body.description!,
+        serviceImage:serviceImageURL
+      }
+    })
     return NextResponse.json(
       { message: `تم إضافة خدمة جديدة بعنوان ${body.title}`, service },
       { status: 201 }

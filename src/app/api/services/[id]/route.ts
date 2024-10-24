@@ -1,8 +1,9 @@
 // src\app\api\services\[id]\route.ts
 
-import { DeleteService, GetServiceByID, updateService } from "@/lib/services";
+import { DeleteService, GetServiceByID } from "@/lib/services";
 import prisma from "@/utils/db";
 import { UpdateServiceDto } from "@/utils/dtos";
+import { uploadImage } from "@/utils/uploadImage";
 import { verifyToken } from "@/utils/verifyToken";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -29,11 +30,24 @@ export async function PUT(request: NextRequest, { params }: Props) {
         { status: 403 }
       );
     }
-    const body = (await request.json()) as UpdateServiceDto;
+    const formData = await request.formData();
+    const body: Partial<UpdateServiceDto> = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+    };
+
+    const Active = formData.get("isActive") as string;
+    const image = formData.get("serviceImage") as File | null;
 
     const service = await prisma.services.findUnique({
       where: { id: serviceID },
     });
+
+    let serviceImageURL = service?.serviceImage;
+    if (image && image instanceof File) {
+      const imageBuffer = await image.arrayBuffer();
+      serviceImageURL = await uploadImage(Buffer.from(imageBuffer));
+    }
 
     if (!service) {
       return NextResponse.json(
@@ -41,12 +55,24 @@ export async function PUT(request: NextRequest, { params }: Props) {
         { status: 400 }
       );
     }
-    const data: UpdateServiceDto = {
-      id: serviceID,
-      title: body.title,
-      isActive: body.isActive,
-    };
-    const serviceUpdate = await updateService(data);
+
+
+    let isActive = true;
+    if (Active && Active === "false" || Active === "False" || Active === "FALSE") {
+      isActive = false;
+    } else if (Active && Active === "true" || Active === "True" || Active === "TRUE") {
+      isActive = true;
+    }
+
+    const serviceUpdate = await prisma.services.update({
+      where: { id: serviceID },
+      data: {
+        title: body.title || service.title,
+        description: body.description || service.description,
+        serviceImage: serviceImageURL,
+        isActive
+      },
+    });
 
     return NextResponse.json(
       { message: `تم تعديل الخدمة بنجاح`, serviceUpdate },
@@ -117,9 +143,9 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 
     const service = await prisma.services.findUnique({
       where: { id: serviceID },
-      include:{
-        DevicesModels:true
-      }
+      include: {
+        DevicesModels: true,
+      },
     });
 
     if (!service) {

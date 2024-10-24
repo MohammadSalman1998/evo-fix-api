@@ -4,12 +4,16 @@ import { RequestStatus, Role, typeEpaid } from "@prisma/client";
 
 export interface CreateServiceDto {
   title: string;
+  serviceImage?: File;
+  description: string;
 }
 
 export interface UpdateServiceDto {
   id: number;
   title?: string;
   isActive?: boolean;
+  serviceImage?: File;
+  description?: string;
 }
 
 export interface CreateModelsDto {

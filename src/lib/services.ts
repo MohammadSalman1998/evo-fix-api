@@ -1,44 +1,48 @@
 // src\lib\services.ts
 import {
   CreateModelsDto,
-  CreateServiceDto,
-  UpdateServiceDto,
+  // CreateServiceDto,
+  // UpdateServiceDto,
   UpdateModelsDto,
 } from "@/utils/dtos";
 import prisma from "@/utils/db";
 
 // CRUD of services
 
-export async function createServices({ title }: CreateServiceDto) {
-  try {
-    const service = await prisma.services.create({
-      data: {
-        title,
-      },
-    });
-    return service;
-  } catch (error) {
-    console.log("error create a service", error);
-    throw new Error("error create a service");
-  }
-}
+// export async function createServices({ title, serviceImage, description}: CreateServiceDto ) {
+//   try {
+//     const service = await prisma.services.create({
+//       data: {
+//         title,
+//         serviceImage,
+//         description,
+//       },
+//     });
+//     return service;
+//   } catch (error) {
+//     console.log("error create a service", error);
+//     throw new Error("error create a service");
+//   }
+// }
 
-export async function updateService({ id, title, isActive }: UpdateServiceDto) {
-  try {
-    const updateService = await prisma.services.update({
-      where: { id },
-      data: {
-        title,
-        isActive,
-      },
-    });
+// export async function updateService({ id, title, isActive,description,serviceImage }: UpdateServiceDto) {
+//   try {
+//     const updateService = await prisma.services.update({
+//       where: { id },
+//       data: {
+//         title,
+//         isActive,
+//         description,
+//         serviceImage,
+//       },
+//     });
 
-    return updateService;
-  } catch (error) {
-    console.log("error update a service", error);
-    throw new Error("error update a service");
-  }
-}
+//     return updateService;
+//   } catch (error) {
+//     console.log("error update a service", error);
+//     throw new Error("error update a service");
+//   }
+// }
 
 export async function DeleteService(id: number) {
   try {

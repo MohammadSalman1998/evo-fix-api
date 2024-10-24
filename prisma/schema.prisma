@@ -158,10 +158,12 @@ model SMS {
 }
 
 model services {
-  id       Int      @id @default(autoincrement())
-  title    String
-  isActive Boolean  @default(true)
-  createAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  serviceImage String?
+  isActive     Boolean  @default(true)
+  createAt     DateTime @default(now())
 
   DevicesModels DevicesModels[]
 }
