@@ -7,6 +7,7 @@ export async function getAllTechnician() {
     const allTechnician = await prisma.user.findMany({
       where: { role: "TECHNICAL" },
       select: {
+        id:true,
         fullName: true,
         email: true,
         address: true,
@@ -49,6 +50,7 @@ export async function getAllTechnicianByGovernorate(governorate: string) {
     const TechnicianByGovernorate = await prisma.user.findMany({
       where: { role: "TECHNICAL", governorate },
       select: {
+        id:true,
         fullName: true,
         email: true,
         address: true,
@@ -92,6 +94,7 @@ export async function getAllSubAdmin() {
       const allSubAdmin = await prisma.user.findMany({
         where: { role: "SUBADMIN" },
         select: {
+          id:true,
           fullName: true,
           email: true,
           address: true,
