@@ -53,7 +53,7 @@ export async function GET() {
     if (countFAQ < 1) {
       return NextResponse.json(
         { message: "ليس هناك أسئلة متاحة" },
-        { status: 404 }
+        { status: 200 }
       );
     }
     const faqs = await getAllFAQ();

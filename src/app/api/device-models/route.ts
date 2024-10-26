@@ -53,7 +53,7 @@ export async function GET() {
       if (getCountdevicemodels < 1) {
         return NextResponse.json(
           { message: "لا يوجد موديلات بعد" },
-          { status: 404 }
+          { status: 200 }
         );
       }
   

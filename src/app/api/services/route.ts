@@ -87,7 +87,7 @@ export async function GET() {
     if (getCountServices < 1) {
       return NextResponse.json(
         { message: "لا يوجد خدمات بعد" },
-        { status: 404 }
+        { status: 200 }
       );
     }
 
