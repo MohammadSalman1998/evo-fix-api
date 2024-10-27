@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         id: {
           not: adminToken?.id,
         },
+        role:"USER"
       },
       include: {
         customer: true,
