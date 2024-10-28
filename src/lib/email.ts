@@ -198,6 +198,22 @@ export async function contactUs({
   }
 }
 
+export async function ReadcontactUs(id: number){
+  try {
+    const ReadcontactUsEmail = await prisma.email.update({
+      where:{id},
+      data: {
+        isRead: true
+      },
+    });
+
+    return ReadcontactUsEmail;
+  } catch (error) {
+    console.error("Error read email of contact us:", error);
+    throw new Error("Failed to read email of contact us");
+  }
+}
+
 // Sender Endpoints
 // export async function getSentEmails(userId: number, limit: number = 10, offset: number = 0): Promise<SentEmailOutDto[]> {
 export async function getAllContactUsEmails() {

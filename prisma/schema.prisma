@@ -100,6 +100,7 @@ model Email {
   subject     String
   content     String
   recipientId Int
+  isRead      Boolean   @default(false)
   sentAt      DateTime @default(now())
   recipient   User     @relation("EmailRecipient", fields: [recipientId], references: [id])
 }
