@@ -18,6 +18,7 @@ model User {
   avatar               String?
   role                 Role                 @default(USER)
   isActive             Boolean              @default(true)
+  isVerified            Boolean @default(false)
   createdAt            DateTime             @default(now())
   customer             Customer?
   receivedEmails       Email[]              @relation("EmailRecipient")

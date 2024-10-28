@@ -7,9 +7,12 @@ import { RegisterUserDto } from "@/utils/dtos";
 import { RegisterUserSchema } from "@/utils/validationSchemas";
 import { Role } from "@prisma/client";
 import { generateJWT } from "@/utils/generateToken";
-import { createNotification } from "@/lib/notification";
+// import { createNotification } from "@/lib/notification";
 import { sendRealMail } from "@/lib/email";
-import { sendSms } from "@/lib/sms";
+// import { sendSms } from "@/lib/sms";
+import jwt from "jsonwebtoken";
+
+
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -170,12 +173,12 @@ export async function POST(request: NextRequest) {
         phoneNO: body.phoneNO,
         address: body.address,
         avatar: body.avatar,
-        isActive:
-          body.role === Role.TECHNICAL ||
-          body.role === Role.ADMIN ||
-          body.role === Role.SUBADMIN
-            ? false
-            : true,
+        isActive: false,
+          // body.role === Role.TECHNICAL ||
+          // body.role === Role.ADMIN ||
+          // body.role === Role.SUBADMIN
+          //   ? false
+          //   : true,
         role: (body.role as Role) || Role.USER,
         customer:
           body.role !== Role.SUBADMIN &&
@@ -223,79 +226,107 @@ export async function POST(request: NextRequest) {
       admin_governorate: newUser.subadmin?.governorate,
     };
 
-       const admins = await prisma.user.findMany({
-      where: {
-        role: {
-          in: [Role.ADMIN, Role.SUBADMIN],
-        },
-        isActive: true,
-      },
-      orderBy:{createdAt:"desc"}
-    });
-    const tokenPayload = {
+     // إنشاء رمز التحقق
+     const secret = process.env.JWT_SECRET + newUser.password;
+     const token = jwt.sign({ id: newUser.id }, secret, { expiresIn: "15m" });
+ 
+     // رابط التحقق
+     const verificationLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/verify-email?token=${token}&id=${newUser.id}`;
+ 
+     // إرسال البريد الإلكتروني
+     await sendRealMail({
+       recipientName: newUser.fullName,
+       mainContent: "تحقق من بريدك الإلكتروني",
+       additionalContent: `انقر <a href="${verificationLink}">هنا</a> للتحقق من بريدك الإلكتروني.`
+     }, {
+       to: newUser.email,
+       subject: 'تحقق من بريدك الإلكتروني',
+     });
+
+         const tokenPayload = {
       id: newUser.id,
       role: newUser.role,
       fullName: newUser.fullName,
     };
 
-    const token = generateJWT(tokenPayload);
+     const registerToken = generateJWT(tokenPayload);
+ 
+     return NextResponse.json({ message: "تم إرسال رمز التحقق إلى بريدك الإلكتروني", ...userResponse, token: registerToken }, { status: 200 });
+ 
 
-  const notificationNewTechAccountData = {
-      title: "طلب تفعيل حساب تقني",
-      name: `الاسم: ${newUser.fullName}`,
-      specialization: `الاختصاص: ${newUser.technician?.specialization}`,
-    };
+  //      const admins = await prisma.user.findMany({
+  //     where: {
+  //       role: {
+  //         in: [Role.ADMIN, Role.SUBADMIN],
+  //       },
+  //       isActive: true,
+  //     },
+  //     orderBy:{createdAt:"desc"}
+  //   });
+  //   const tokenPayload = {
+  //     id: newUser.id,
+  //     role: newUser.role,
+  //     fullName: newUser.fullName,
+  //   };
 
-    for (const admin of admins) {
-      if (newUser.role === Role.TECHNICAL) {
-        if (
-          admin.role === "ADMIN" ||
-          (admin.governorate === newUser.governorate &&
-            admin.role === "SUBADMIN")
-        ) {
-          await createNotification({
-            senderId: newUser.id,
-            recipientId: admin.id,
-            title: notificationNewTechAccountData.title,
-            content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
-          });
+  //   const token = generateJWT(tokenPayload);
 
-          await sendRealMail({
-            recipientName: admin.fullName,
-            mainContent: `هناك طلب حساب تقني جديد باسم "${newUser.fullName}"`,
-            additionalContent: `${notificationNewTechAccountData.specialization}`,
-          },{
-            to: admin.email,
-            subject:notificationNewTechAccountData.title , 
-          })
+  // const notificationNewTechAccountData = {
+  //     title: "طلب تفعيل حساب تقني",
+  //     name: `الاسم: ${newUser.fullName}`,
+  //     specialization: `الاختصاص: ${newUser.technician?.specialization}`,
+  //   };
+
+  //   for (const admin of admins) {
+  //     if (newUser.role === Role.TECHNICAL) {
+  //       if (
+  //         admin.role === "ADMIN" ||
+  //         (admin.governorate === newUser.governorate &&
+  //           admin.role === "SUBADMIN")
+  //       ) {
+  //         await createNotification({
+  //           senderId: newUser.id,
+  //           recipientId: admin.id,
+  //           title: notificationNewTechAccountData.title,
+  //           content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
+  //         });
+
+  //         await sendRealMail({
+  //           recipientName: admin.fullName,
+  //           mainContent: `هناك طلب حساب تقني جديد باسم "${newUser.fullName}"`,
+  //           additionalContent: `${notificationNewTechAccountData.specialization}`,
+  //         },{
+  //           to: admin.email,
+  //           subject:notificationNewTechAccountData.title , 
+  //         })
 
          
 
-            try {
-              await sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
-                يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
-            } catch (error) {
-              console.log(error);
+  //           try {
+  //             await sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
+  //               يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
+  //           } catch (error) {
+  //             console.log(error);
       
-              return NextResponse.json(
-                {
-                  message:
-                    "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تسجيل الحساب بنجاح ",
-                  ...userResponse,
-                  token
-                },
-                { status: 201 }
-              );
-            }
-        }
-      }
-    }
+  //             return NextResponse.json(
+  //               {
+  //                 message:
+  //                   "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تسجيل الحساب بنجاح ",
+  //                 ...userResponse,
+  //                 token
+  //               },
+  //               { status: 201 }
+  //             );
+  //           }
+  //       }
+  //     }
+  //   }
 
     
-    return NextResponse.json(
-      { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
-      { status: 201 }
-    );
+  //   return NextResponse.json(
+  //     { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
+  //     { status: 201 }
+  //   );
   } catch (error) {
     console.error("Error creating user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
