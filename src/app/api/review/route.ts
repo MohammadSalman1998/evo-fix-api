@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const admin = await prisma.user.findFirst({where:{role:"ADMIN"}})
+    const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
     const body = (await request.json()) as createReviewDto;
     const reviewData: createReviewDto = {
       userId: account.id,
@@ -41,9 +41,9 @@ export async function POST(request: NextRequest) {
     await createNotification({
       senderId: account.id,
       recipientId: admin?.id || 0,
-      title:"تقييم جديد",
-      content:`تقييم جديد باسم: "${account.fullName}" - درجة التقييم: "${review.rating}" - التعليق: "${review.comment}"`
-    })
+      title: "تقييم جديد",
+      content: `تقييم جديد باسم: "${account.fullName}" - درجة التقييم: "${review.rating}" - التعليق: "${review.comment}"`,
+    });
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {
@@ -63,10 +63,8 @@ export async function GET(request: NextRequest) {
   try {
     const account = verifyToken(request);
     if (!account) {
-      return NextResponse.json(
-        { message: "قم بتسجيل الدخول أولاً" },
-        { status: 403 }
-      );
+      const allReviews = await getAllReviewsActive();
+      return NextResponse.json({ allReviews }, { status: 200 });
     }
 
     const admin = await prisma.user.findUnique({
@@ -95,12 +93,6 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ subAdminReviews }, { status: 200 });
     }
-
-    const allReviews = await getAllReviewsActive()
-    return NextResponse.json(
-      { allReviews },
-      { status: 200 }
-    );
   } catch (error) {
     console.error("Error fetching Reviews", error);
     return NextResponse.json(
