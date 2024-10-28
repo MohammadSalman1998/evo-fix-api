@@ -3,34 +3,26 @@
 import { createFAQ, getAllFAQ } from "@/lib/faq";
 import prisma from "@/utils/db";
 import { createFAQDto } from "@/utils/dtos";
-import { verifyToken } from "@/utils/verifyToken";
+// import { verifyToken } from "@/utils/verifyToken";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
  *  @method POST
  *  @route  ~/api/fAQ
  *  @desc   create new fAQ
- *  @access private (only  Admin)
+ *  @access public
  */
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = verifyToken(request);
-    if (!admin || admin.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "ليس لديك الصلاحية" },
-        { status: 403 }
-      );
-    }
     const body = (await request.json()) as createFAQDto;
     const data: createFAQDto = {
       question: body.question,
-      answer: body.answer,
       category: body.category,
     };
     const faq = await createFAQ(data);
     return NextResponse.json(
-      { message: "تم إنشاء سؤال شائع بنجاح", faq },
+      { message: "تم إرسال السؤال بنجاح", faq },
       { status: 201 }
     );
   } catch (error) {

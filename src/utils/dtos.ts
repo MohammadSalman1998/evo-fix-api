@@ -96,7 +96,7 @@ export interface CreateNotificationDto {
   recipientId: number;
   title?: string;
   content: string;
-  requestId?: number;
+  requestId?: number | null;
   // metadata?: number,
 }
 
@@ -218,7 +218,6 @@ export interface updateTermsOfUsePolicyDto {
 
 export interface createFAQDto {
   question: string;
-  answer: string;
   category?: string;
 }
 export interface UpdateFAQDto {

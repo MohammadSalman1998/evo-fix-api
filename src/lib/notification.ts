@@ -2,14 +2,14 @@
 import prisma from "@/utils/db";
 import { CreateNotificationDto, notificationOutDto } from "@/utils/dtos";
 // import { Notification } from "@prisma/client";
-import { sendToUser } from "../websocket-server";
+// import { sendToUser } from "../websocket-server";
 
 export async function createNotification({
   senderId,
   recipientId,
   title = "إشعار جديد",
   content,
-  requestId = 0,
+  requestId = null,
 }: CreateNotificationDto) {
   try {
     const notification = await prisma.notification.create({
@@ -25,16 +25,16 @@ export async function createNotification({
       },
     });
 
-    sendToUser(recipientId, {
-      type: "NEW_NOTIFICATION",
-      data: {
-        recipientId,
-        requestId,
-        title,
-        content,
-        createdAt: new Date(),
-      },
-    });
+    // sendToUser(recipientId, {
+    //   type: "NEW_NOTIFICATION",
+    //   data: {
+    //     recipientId,
+    //     requestId,
+    //     title,
+    //     content,
+    //     createdAt: new Date(),
+    //   },
+    // });
 
     return notification;
   } catch (error) {

@@ -2,13 +2,14 @@
 import prisma from "@/utils/db";
 import { createFAQDto, UpdateFAQDto } from "@/utils/dtos";
 
-export async function createFAQ({ question, answer, category }: createFAQDto) {
+export async function createFAQ({ question, category }: createFAQDto) {
   try {
     const FAQ = await prisma.fAQ.create({
       data: {
         question,
-        answer,
+        answer: '',
         category,
+        isPublished:false
       },
     });
 

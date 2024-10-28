@@ -66,11 +66,11 @@ export async function PUT(request: NextRequest, { params }: Props) {
       question: body.question,
       answer: body.answer,
       category: body.category,
-      isPublished: body.isPublished,
+      isPublished: body.isPublished !== undefined  ? body.isPublished : true,
     };
     const FAQ = await updateFAQ(faqID, data);
     return NextResponse.json(
-      { message: "تم التعديل بنجاح", FAQ },
+      { message: "تم تعديل السؤال بنجاح", FAQ },
       { status: 200 }
     );
   } catch (error) {
