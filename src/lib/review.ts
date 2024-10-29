@@ -31,6 +31,7 @@ export async function createReview({
     try {
       const AllReviews = await prisma.review.findMany({
         select: {
+          id:true,
           rating:true,
           comment:true,
           user:{
@@ -56,6 +57,7 @@ export async function createReview({
       const AllReviewsByGovernorate = await prisma.review.findMany({
         where:{user:{governorate}},
         select: {
+          id:true,
           rating:true,
           comment:true,
           user:{
@@ -97,6 +99,7 @@ export async function getAllReviewsActive(){
     const AllReviews = await prisma.review.findMany({
       where:{isActive:true},
       select: {
+        id:true,
         rating:true,
         comment:true,
         user:{

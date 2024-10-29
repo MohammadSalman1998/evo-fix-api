@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
       
       const faqs = await prisma.fAQ.findMany({
         select:{
+          id:true,
           question:true,
           answer:true,
           category:true,
