@@ -1,6 +1,7 @@
 // src\app\api\termsOfUsePolicy\route.ts
 
 import { createTermsPolicy } from "@/lib/termsOfUsePolicy";
+import prisma from "@/utils/db";
 import { createTermsOfUsePolicyDto } from "@/utils/dtos";
 import { verifyToken } from "@/utils/verifyToken";
 import { NextRequest, NextResponse } from "next/server";
@@ -35,6 +36,34 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error create termsPolicy", error);
+    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+  }
+}
+
+
+/**
+ *  @method GET
+ *  @route  ~/api/termsOfUsePolicy
+ *  @desc   get all termsOfUsePolicy
+ *  @access public
+ */
+
+export async function GET() {
+  try {
+    
+    const TermsPolicy = await prisma.termsOfUsePolicy.findMany()
+    if(TermsPolicy.length < 1){
+      return NextResponse.json(
+        {message: "لاتوجد سياسة استخدام للمنصة بعد" },
+        { status: 200 }
+      );
+    }
+    return NextResponse.json(
+      {TermsPolicy },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error get all termsPolicy", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
   }
 }
