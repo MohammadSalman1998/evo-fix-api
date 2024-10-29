@@ -67,31 +67,33 @@ export async function GET(request: NextRequest) {
     //   return NextResponse.json({ allReviews }, { status: 200 });
     // }
 
-    const admin = await prisma.user.findUnique({
-      where: { id: account?.id, role: "ADMIN" },
-    });
-
-    const subAdmin = await prisma.user.findUnique({
-      where: { id: account?.id, role: "SUBADMIN" },
-      select: {
-        subadmin: {
-          select: {
-            governorate: true,
+    if(account){
+      const admin = await prisma.user.findUnique({
+        where: { id: account?.id, role: "ADMIN" },
+      });
+  
+      const subAdmin = await prisma.user.findUnique({
+        where: { id: account?.id, role: "SUBADMIN" },
+        select: {
+          subadmin: {
+            select: {
+              governorate: true,
+            },
           },
         },
-      },
-    });
-
-    if (admin) {
-      const adminReviews = await getAllReviews();
-      return NextResponse.json({ adminReviews }, { status: 200 });
-    }
-    if (subAdmin) {
-      const subAdminReviews = await getAllReviewsByGovernorate(
-        subAdmin.subadmin?.governorate || ""
-      );
-
-      return NextResponse.json({ subAdminReviews }, { status: 200 });
+      });
+  
+      if (admin) {
+        const adminReviews = await getAllReviews();
+        return NextResponse.json({ adminReviews }, { status: 200 });
+      }
+      if (subAdmin) {
+        const subAdminReviews = await getAllReviewsByGovernorate(
+          subAdmin.subadmin?.governorate || ""
+        );
+  
+        return NextResponse.json({ subAdminReviews }, { status: 200 });
+      }
     }
     const allReviews = await getAllReviewsActive();
       return NextResponse.json({ allReviews }, { status: 200 });
