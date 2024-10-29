@@ -117,3 +117,16 @@ export async function getAllReviewsActive(){
     throw new Error("Failed to get all reviews");
   }
 }
+
+export async function deleteReview(id:number){
+  try {
+    const Review = await prisma.review.delete({
+      where:{id},
+    });
+
+    return Review;
+  } catch (error) {
+    console.error("Error delete review:", error);
+    throw new Error("Failed to delete review");
+  }
+}
