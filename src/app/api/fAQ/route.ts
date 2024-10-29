@@ -3,6 +3,7 @@
 import { createFAQ, getAllFAQ } from "@/lib/faq";
 import prisma from "@/utils/db";
 import { createFAQDto } from "@/utils/dtos";
+import { verifyToken } from "@/utils/verifyToken";
 // import { verifyToken } from "@/utils/verifyToken";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -38,18 +39,45 @@ export async function POST(request: NextRequest) {
  *  @access public
  */
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const countFAQ = await prisma.fAQ.count({ where: { isPublished: true } });
+    const admin = verifyToken(request);
+    
+    if ((admin?.role !== "ADMIN" && admin?.role !== "SUBADMIN") || !admin) {
+      const countFAQ = await prisma.fAQ.count({ where: { isPublished: true } });
+      if (countFAQ < 1) {
+        return NextResponse.json(
+          { message: "ليس هناك أسئلة متاحة" },
+          { status: 200 }
+        );
+      }
 
-    if (countFAQ < 1) {
-      return NextResponse.json(
-        { message: "ليس هناك أسئلة متاحة" },
-        { status: 200 }
-      );
+      const faqs = await getAllFAQ();
+      return NextResponse.json({ faqs }, { status: 200 });
     }
-    const faqs = await getAllFAQ();
-    return NextResponse.json({ faqs }, { status: 200 });
+    if(admin && (admin.role === "ADMIN" || admin.role === "SUBADMIN")){
+      
+      const faqs = await prisma.fAQ.findMany({
+        select:{
+          question:true,
+          answer:true,
+          category:true,
+          createdAt:true,
+          isPublished:true,
+        },
+        orderBy:{createdAt:"desc"}
+      })
+      if (faqs.length > 0){
+
+        return NextResponse.json({ faqs }, { status: 200 });
+      }else{
+        return NextResponse.json(
+          { message: "ليس هناك أسئلة متاحة" },
+          { status: 200 }
+        );
+      }
+
+    }
   } catch (error) {
     console.error("Error get all fAQ", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });

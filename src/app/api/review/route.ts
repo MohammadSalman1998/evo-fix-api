@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const account = verifyToken(request);
-    if (!account) {
-      const allReviews = await getAllReviewsActive();
-      return NextResponse.json({ allReviews }, { status: 200 });
-    }
+    // if (!account || ) {
+    //   const allReviews = await getAllReviewsActive();
+    //   return NextResponse.json({ allReviews }, { status: 200 });
+    // }
 
     const admin = await prisma.user.findUnique({
       where: { id: account?.id, role: "ADMIN" },
@@ -93,6 +93,8 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ subAdminReviews }, { status: 200 });
     }
+    const allReviews = await getAllReviewsActive();
+      return NextResponse.json({ allReviews }, { status: 200 });
   } catch (error) {
     console.error("Error fetching Reviews", error);
     return NextResponse.json(
