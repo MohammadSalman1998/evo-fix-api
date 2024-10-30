@@ -1,5 +1,5 @@
 
-// src/middleware.ts
+// src\middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { corsMiddleware } from '@/utils/cors';
@@ -10,7 +10,7 @@ const cors = corsMiddleware();
 const rateLimitStore = new Map<string, { requests: number[], windowStart: number }>();
 
 const WINDOW_DURATION_IN_MINUTES = 1;
-const MAX_REQUESTS = 15;
+const MAX_REQUESTS = 30;
 
 interface RateLimitResult {
   isWithinLimit: boolean;

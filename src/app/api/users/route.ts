@@ -12,7 +12,6 @@ import { sendRealMail } from "@/lib/email";
 // import { sendSms } from "@/lib/sms";
 import jwt from "jsonwebtoken";
 
-
 /**
  *  @method GET
  *  @route  ~/api/users
@@ -28,14 +27,14 @@ export async function GET(request: NextRequest) {
         id: {
           not: adminToken?.id,
         },
-        role:"USER"
+        role: "USER",
       },
       include: {
         customer: true,
         technician: true,
         subadmin: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
 
     const subAdmin = await prisma.user.findUnique({
@@ -65,10 +64,10 @@ export async function GET(request: NextRequest) {
         customer: true,
         technician: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
 
-     const countUsers = users.length;
+    const countUsers = users.length;
     const countUsersByGovernorate = usersByGovernorate.length;
 
     if (adminToken?.role === "ADMIN" && countUsers < 1) {
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { message: "لا يوجد حسابات متاحة" },
         { status: 200 }
-      );  
+      );
     }
 
     const usersByGovernorateResponse = usersByGovernorate.map(
@@ -140,6 +139,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const admin = verifyToken(request);
     const body = (await request.json()) as RegisterUserDto;
     const validation = RegisterUserSchema.safeParse(body);
     if (!validation.success) {
@@ -174,12 +174,17 @@ export async function POST(request: NextRequest) {
         address: body.address,
         avatar: body.avatar,
         isActive: false,
-          // body.role === Role.TECHNICAL ||
-          // body.role === Role.ADMIN ||
-          // body.role === Role.SUBADMIN
-          //   ? false
-          //   : true,
-        role: (body.role as Role) || Role.USER,
+        // body.role === Role.TECHNICAL ||
+        // body.role === Role.ADMIN ||
+        // body.role === Role.SUBADMIN
+        //   ? false
+        //   : true,
+        role:
+          admin?.role === Role.ADMIN
+            ? (body.role as Role) || Role.USER
+            : body.role === Role.TECHNICAL
+            ? (body.role as Role)
+            : Role.USER,
         customer:
           body.role !== Role.SUBADMIN &&
           body.role !== Role.ADMIN &&
@@ -199,7 +204,9 @@ export async function POST(request: NextRequest) {
           body.role === Role.SUBADMIN
             ? {
                 create: {
-                  department: `مدير محافظة ${body.governorateAdmin || body.governorate} بقسم الصيانة`,
+                  department: `مدير محافظة ${
+                    body.governorateAdmin || body.governorate
+                  } بقسم الصيانة`,
                   governorate: body.governorateAdmin || body.governorate,
                 },
               }
@@ -226,107 +233,113 @@ export async function POST(request: NextRequest) {
       admin_governorate: newUser.subadmin?.governorate,
     };
 
-     // إنشاء رمز التحقق
-     const secret = process.env.JWT_SECRET + newUser.password;
-     const token = jwt.sign({ id: newUser.id }, secret, { expiresIn: "15m" });
- 
-     // رابط التحقق
-     const verificationLink = `https://evo-fi.vercel.app/verify-email?token=${token}&id=${newUser.id}`;
- 
-     // إرسال البريد الإلكتروني
-     await sendRealMail({
-       recipientName: newUser.fullName,
-       mainContent: "تحقق من بريدك الإلكتروني",
-       additionalContent: `انقر <a href="${verificationLink}">هنا</a> للتحقق من بريدك الإلكتروني.`
-     }, {
-       to: newUser.email,
-       subject: 'تحقق من بريدك الإلكتروني',
-     });
+    // إنشاء رمز التحقق
+    const secret = process.env.JWT_SECRET + newUser.password;
+    const token = jwt.sign({ id: newUser.id }, secret, { expiresIn: "15m" });
 
-         const tokenPayload = {
+    // رابط التحقق
+    const verificationLink = `https://evo-fi.vercel.app/verify-email?token=${token}&id=${newUser.id}`;
+
+    // إرسال البريد الإلكتروني
+    await sendRealMail(
+      {
+        recipientName: newUser.fullName,
+        mainContent: "تحقق من بريدك الإلكتروني",
+        additionalContent: `انقر <a href="${verificationLink}">هنا</a> للتحقق من بريدك الإلكتروني.`,
+      },
+      {
+        to: newUser.email,
+        subject: "تحقق من بريدك الإلكتروني",
+      }
+    );
+
+    const tokenPayload = {
       id: newUser.id,
       role: newUser.role,
       fullName: newUser.fullName,
     };
 
-     const registerToken = generateJWT(tokenPayload);
- 
-     return NextResponse.json({ message: "تم إرسال رمز التحقق إلى بريدك الإلكتروني", ...userResponse, token: registerToken }, { status: 200 });
- 
+    const registerToken = generateJWT(tokenPayload);
 
-  //      const admins = await prisma.user.findMany({
-  //     where: {
-  //       role: {
-  //         in: [Role.ADMIN, Role.SUBADMIN],
-  //       },
-  //       isActive: true,
-  //     },
-  //     orderBy:{createdAt:"desc"}
-  //   });
-  //   const tokenPayload = {
-  //     id: newUser.id,
-  //     role: newUser.role,
-  //     fullName: newUser.fullName,
-  //   };
+    return NextResponse.json(
+      {
+        message: "تم إرسال رمز التحقق إلى بريدك الإلكتروني",
+        ...userResponse,
+        token: registerToken,
+      },
+      { status: 200 }
+    );
 
-  //   const token = generateJWT(tokenPayload);
+    //      const admins = await prisma.user.findMany({
+    //     where: {
+    //       role: {
+    //         in: [Role.ADMIN, Role.SUBADMIN],
+    //       },
+    //       isActive: true,
+    //     },
+    //     orderBy:{createdAt:"desc"}
+    //   });
+    //   const tokenPayload = {
+    //     id: newUser.id,
+    //     role: newUser.role,
+    //     fullName: newUser.fullName,
+    //   };
 
-  // const notificationNewTechAccountData = {
-  //     title: "طلب تفعيل حساب تقني",
-  //     name: `الاسم: ${newUser.fullName}`,
-  //     specialization: `الاختصاص: ${newUser.technician?.specialization}`,
-  //   };
+    //   const token = generateJWT(tokenPayload);
 
-  //   for (const admin of admins) {
-  //     if (newUser.role === Role.TECHNICAL) {
-  //       if (
-  //         admin.role === "ADMIN" ||
-  //         (admin.governorate === newUser.governorate &&
-  //           admin.role === "SUBADMIN")
-  //       ) {
-  //         await createNotification({
-  //           senderId: newUser.id,
-  //           recipientId: admin.id,
-  //           title: notificationNewTechAccountData.title,
-  //           content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
-  //         });
+    // const notificationNewTechAccountData = {
+    //     title: "طلب تفعيل حساب تقني",
+    //     name: `الاسم: ${newUser.fullName}`,
+    //     specialization: `الاختصاص: ${newUser.technician?.specialization}`,
+    //   };
 
-  //         await sendRealMail({
-  //           recipientName: admin.fullName,
-  //           mainContent: `هناك طلب حساب تقني جديد باسم "${newUser.fullName}"`,
-  //           additionalContent: `${notificationNewTechAccountData.specialization}`,
-  //         },{
-  //           to: admin.email,
-  //           subject:notificationNewTechAccountData.title , 
-  //         })
+    //   for (const admin of admins) {
+    //     if (newUser.role === Role.TECHNICAL) {
+    //       if (
+    //         admin.role === "ADMIN" ||
+    //         (admin.governorate === newUser.governorate &&
+    //           admin.role === "SUBADMIN")
+    //       ) {
+    //         await createNotification({
+    //           senderId: newUser.id,
+    //           recipientId: admin.id,
+    //           title: notificationNewTechAccountData.title,
+    //           content: `${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization}`,
+    //         });
 
-         
+    //         await sendRealMail({
+    //           recipientName: admin.fullName,
+    //           mainContent: `هناك طلب حساب تقني جديد باسم "${newUser.fullName}"`,
+    //           additionalContent: `${notificationNewTechAccountData.specialization}`,
+    //         },{
+    //           to: admin.email,
+    //           subject:notificationNewTechAccountData.title ,
+    //         })
 
-  //           try {
-  //             await sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
-  //               يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
-  //           } catch (error) {
-  //             console.log(error);
-      
-  //             return NextResponse.json(
-  //               {
-  //                 message:
-  //                   "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تسجيل الحساب بنجاح ",
-  //                 ...userResponse,
-  //                 token
-  //               },
-  //               { status: 201 }
-  //             );
-  //           }
-  //       }
-  //     }
-  //   }
+    //           try {
+    //             await sendSms(`   ترحب بكم EvoFix سيد/ة ${admin.fullName}
+    //               يوجد طلب حساب تقني جديد  ${notificationNewTechAccountData.name} - ${notificationNewTechAccountData.specialization} `)
+    //           } catch (error) {
+    //             console.log(error);
 
-    
-  //   return NextResponse.json(
-  //     { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
-  //     { status: 201 }
-  //   );
+    //             return NextResponse.json(
+    //               {
+    //                 message:
+    //                   "خطأ بالوصول إلى خادم إرسال الرسائل ولكن تم تسجيل الحساب بنجاح ",
+    //                 ...userResponse,
+    //                 token
+    //               },
+    //               { status: 201 }
+    //             );
+    //           }
+    //       }
+    //     }
+    //   }
+
+    //   return NextResponse.json(
+    //     { message: "تم تسجيل الحساب بنجاح", ...userResponse, token },
+    //     { status: 201 }
+    //   );
   } catch (error) {
     console.error("Error creating user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
