@@ -1,3 +1,80 @@
+// // src/middleware/rateLimiter.ts
+// import rateLimit from "express-rate-limit";
+// import RedisStore from "rate-limit-redis";
+// import { createClient } from "redis";
+
+// const redisClient = createClient({ url: process.env.REDIS_URL });
+// redisClient.connect();
+
+// const createRateLimiter = (userId: string) => {
+//   return rateLimit({
+//     store: new RedisStore({
+//       sendCommand: async (command: string, ...args: string[]) => {
+//         return await redisClient.sendCommand([command, ...args]);
+//       },
+//     }),
+//     keyGenerator: () => userId, // استخدام userId كمفتاح لتحديد حد لكل مستخدم
+//     windowMs: 1 * 60 * 1000, // نافذة زمنية لدقيقة واحدة
+//     max: 10, // الحد الأقصى للطلبات لكل مستخدم
+//     message: "تم تجاوز الحد الأقصى للطلبات. حاول مجددًا لاحقاً.",
+//     standardHeaders: true,
+//     legacyHeaders: false,
+//   });
+// };
+
+// export default createRateLimiter;
+
+
+
+
+// /////////////////////////////////////////////////
+
+// // src/app/server.ts
+// import express from "express";
+// import rateLimiter from "./middleware/rateLimiter";
+
+// const app = express();
+
+// // تطبيق الـ Rate Limiter
+// app.use(rateLimiter);
+
+// // إضافة نقاط النهاية (API endpoints)
+// app.get("/", (req, res) => {
+//   res.send("مرحبًا! هذه الصفحة الرئيسية.");
+// });
+
+// app.post("/api/your-endpoint", (req, res) => {
+//   res.send("تم معالجة الطلب بنجاح.");
+// });
+
+// // تشغيل الخادم
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => {
+//   console.log(`الخادم يعمل على المنفذ ${PORT}`);
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // // src/app/api/users/register/route.ts
 // import { NextRequest, NextResponse } from "next/server";
 // import prisma from "@/utils/db";

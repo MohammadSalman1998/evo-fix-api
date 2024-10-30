@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
      const token = jwt.sign({ id: newUser.id }, secret, { expiresIn: "15m" });
  
      // رابط التحقق
-     const verificationLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/verify-email?token=${token}&id=${newUser.id}`;
+     const verificationLink = `https://evo-fi.vercel.app/verify-email?token=${token}&id=${newUser.id}`;
  
      // إرسال البريد الإلكتروني
      await sendRealMail({
