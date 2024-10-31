@@ -73,7 +73,12 @@ export async function POST(request: NextRequest) {
         role: {
           in: [Role.ADMIN, Role.SUBADMIN],
         },
-        isActive: true,
+        isActive:
+        user.role === Role.TECHNICAL ||
+        user.role === Role.ADMIN ||
+        user.role === Role.SUBADMIN
+          ? false
+          : true,
       },
       orderBy: { createdAt: "desc" },
     });

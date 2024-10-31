@@ -82,3 +82,17 @@ export async function getAllFAQ() {
     throw new Error("error get all FAQ");
   }
 }
+
+export async function countNotPublishedFAQ() {
+  try {
+    const FAQ = await prisma.fAQ.count({
+        where:{isPublished:false}
+    });
+
+    return FAQ;
+  } catch (error) {
+    console.log(error);
+    throw new Error("error"+error);
+  }
+}
+

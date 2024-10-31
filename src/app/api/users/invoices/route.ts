@@ -12,7 +12,7 @@ import {
  *  @method GET
  *  @route  ~/api/users/invoices
  *  @desc   Get all users invoices
- *  @access private (only user himself or admin can show all users invoices  Or [subAdmin By same governorate])
+ *  @access private (only user himself or technician just for him tasks or admin can show all users invoices  Or [subAdmin By same governorate])
  */
 
 export async function GET(request: NextRequest) {
