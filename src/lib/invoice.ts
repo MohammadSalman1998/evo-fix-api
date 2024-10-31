@@ -172,3 +172,43 @@ export async function getByGovernorateInvoices( governorate : string) {
     }
   }
   
+
+  export async function getTechInvoices( TechId : number) {
+    try {
+      const myInvoices = await prisma.invoice.findMany({
+        where: { request:{technicianId:TechId} },
+        select: {
+          amount: true,
+          issueDate: true,
+          dueDate: true,
+          isPaid: true,
+          paidAt: true,
+          user: {
+            select: {
+              fullName: true,
+            },
+          },
+          request: {
+            select: {
+              deviceType: true,
+              deviceModel: true,
+              problemDescription: true,
+              isPaidCheckFee: true,
+              governorate:true,
+              Epaid:{
+                  select:{
+                      CheckFee:true,
+                  }
+                }
+            },
+          },
+        },
+        orderBy:{paidAt:"desc"}
+      });
+  
+      return myInvoices;
+    } catch (error) {
+      console.error("Error get my invoices:", error);
+      throw new Error("Failed to get my invoices");
+    }
+  }

@@ -6,6 +6,7 @@ import {
   getAllInvoices,
   getByGovernorateInvoices,
   getMyInvoices,
+  getTechInvoices,
 } from "@/lib/invoice";
 /**
  *  @method GET
@@ -43,8 +44,16 @@ export async function GET(request: NextRequest) {
       where: { id: account?.id, role: "USER" },
     });
 
+    const tech = await prisma.user.findUnique({
+      where:{id: account.id, role: "TECHNICAL"}
+    })
+
     if (user) {
       const userInvoice = await getMyInvoices(user.id);
+      return NextResponse.json({ userInvoice }, { status: 200 });
+    }
+    if (tech) {
+      const userInvoice = await getTechInvoices(tech.id);
       return NextResponse.json({ userInvoice }, { status: 200 });
     }
     if (admin) {
