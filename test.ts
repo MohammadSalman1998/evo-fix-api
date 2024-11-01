@@ -1,3 +1,135 @@
+
+// export async function DELETE(request: NextRequest, { params }: Props) {
+//   try {
+//     const userFromToken = verifyToken(request);
+//     const subAdminUser = await prisma.user.findUnique({
+//       where: {
+//         id: userFromToken?.id,
+//       },
+//       select: {
+//         subadmin: {
+//           select: {
+//             governorate: true,
+//           },
+//         },
+//       },
+//     });
+
+//     const user = await prisma.user.findUnique({
+//       where: { id: parseInt(params.id) },
+//       include: {
+//         customer: true,
+//         technician: true,
+//         subadmin: true,
+//       },
+//     });
+//     if (!user) {
+//       return NextResponse.json(
+//         { message: "هذا الحساب غير موجود" },
+//         { status: 404 }
+//       );
+//     }
+
+//     if (
+//       userFromToken !== null &&
+//       (userFromToken.id === user.id ||
+//         userFromToken.role === "ADMIN" ||
+//         (userFromToken.role === "SUBADMIN" &&
+//           subAdminUser?.subadmin?.governorate === user.governorate &&
+//           user.role !== "SUBADMIN" &&
+//           user.role !== "ADMIN"))
+//     ) {
+//       await prisma.$transaction(async (prisma) => {
+//         // Delete related entities first
+//         if (user.customer) {
+//           await prisma.customer.delete({ where: { id: user.customer.id } });
+//         }
+//         if (user.technician) {
+//           await prisma.technician.delete({ where: { id: user.technician.id } });
+//         }
+//         if (user.subadmin) {
+//           await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
+//         }
+
+//         await sendRealMail(
+//           {
+//             recipientName: user.fullName,
+//             mainContent: `لقد تم حذف حسابك نهائيا من المنصة`,
+//             additionalContent: `يمكنك  إخبار المسؤول بذلك عبر الايميل ${process.env.GOOGLE_EMAIL_APP_EVOFIX}`,
+//           },
+//           {
+//             to: user.email,
+//             subject: "حذف حساب",
+//           }
+//         );
+//         // Finally, delete the user
+//         await prisma.user.delete({ where: { id: parseInt(params.id) } });
+//       });
+
+//       // await prisma.user.delete({ where: { id: parseInt(params.id) } });
+//       return NextResponse.json(
+//         { message: "تم حذف الحساب بنجاح" },
+//         { status: 200 }
+//       );
+//     }
+//     return NextResponse.json(
+//       { message: "ليس لديك الصلاحية " },
+//       { status: 403 }
+//     );
+//   } catch (error) {
+//     console.error("Error deleting user", error);
+//     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // // src/middleware/rateLimiter.ts
 // import rateLimit from "express-rate-limit";
 // import RedisStore from "rate-limit-redis";

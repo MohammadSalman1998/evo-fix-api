@@ -265,6 +265,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
  *  @desc   Delete user
  *  @access private (only user himself can delete his account Or Admin Or [subAdmin By same governorate])
  */
+
 export async function DELETE(request: NextRequest, { params }: Props) {
   try {
     const userFromToken = verifyToken(request);
@@ -287,8 +288,18 @@ export async function DELETE(request: NextRequest, { params }: Props) {
         customer: true,
         technician: true,
         subadmin: true,
+        maintenanceRequests: true,
+        receivedEmails: true,
+        receivedNotification: true,
+        senderNotification: true,
+        Epaid: true,
+        sentSMS: true,
+        receivedSMS: true,
+        Review: true,
+        Invoice: true
       },
     });
+
     if (!user) {
       return NextResponse.json(
         { message: "هذا الحساب غير موجود" },
@@ -306,7 +317,62 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           user.role !== "ADMIN"))
     ) {
       await prisma.$transaction(async (prisma) => {
-        // Delete related entities first
+        // Delete all related records first
+        if (user.maintenanceRequests.length > 0) {
+          await prisma.maintenanceRequest.deleteMany({
+            where: { customerId: user.id }
+          });
+        }
+        
+        if (user.receivedEmails.length > 0) {
+          await prisma.email.deleteMany({
+            where: { recipientId: user.id }
+          });
+        }
+
+        if (user.receivedNotification.length > 0) {
+          await prisma.notification.deleteMany({
+            where: { recipientId: user.id }
+          });
+        }
+
+        if (user.senderNotification.length > 0) {
+          await prisma.notification.deleteMany({
+            where: { senderId: user.id }
+          });
+        }
+
+        if (user.Epaid.length > 0) {
+          await prisma.epaid.deleteMany({
+            where: { senderId: user.id }
+          });
+        }
+
+        if (user.sentSMS.length > 0) {
+          await prisma.sMS.deleteMany({
+            where: { senderId: user.id }
+          });
+        }
+
+        if (user.receivedSMS.length > 0) {
+          await prisma.sMS.deleteMany({
+            where: { recipientId: user.id }
+          });
+        }
+
+        if (user.Review.length > 0) {
+          await prisma.review.deleteMany({
+            where: { userId: user.id }
+          });
+        }
+
+        if (user.Invoice.length > 0) {
+          await prisma.invoice.deleteMany({
+            where: { userId: user.id }
+          });
+        }
+
+        // Delete related entities
         if (user.customer) {
           await prisma.customer.delete({ where: { id: user.customer.id } });
         }
@@ -317,6 +383,11 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           await prisma.sUBADMIN.delete({ where: { id: user.subadmin.id } });
         }
 
+        // Finally, delete the user
+        await prisma.user.delete({ where: { id: parseInt(params.id) } });
+      });
+
+      try {
         await sendRealMail(
           {
             recipientName: user.fullName,
@@ -328,22 +399,28 @@ export async function DELETE(request: NextRequest, { params }: Props) {
             subject: "حذف حساب",
           }
         );
-        // Finally, delete the user
-        await prisma.user.delete({ where: { id: parseInt(params.id) } });
-      });
+      } catch (emailError) {
+        console.error("Error sending delete confirmation email:", emailError);
+        // Continue with the response even if email fails
+      }
 
-      // await prisma.user.delete({ where: { id: parseInt(params.id) } });
       return NextResponse.json(
         { message: "تم حذف الحساب بنجاح" },
         { status: 200 }
       );
     }
+
     return NextResponse.json(
       { message: "ليس لديك الصلاحية " },
       { status: 403 }
     );
   } catch (error) {
-    console.error("Error deleting user", error);
-    return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
+    console.error("Error deleting user:", error);
+    return NextResponse.json({ 
+      message: "خطأ من الخادم",
+      error: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
+
+
