@@ -32,6 +32,7 @@ import {
   countRejectRequestsForTech,
   countRejectRequestsForUser,
 } from "@/lib/requests";
+import { countNotPublishedFAQ } from "@/lib/faq";
 
 /**
  *  @method GET
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
     let InProgress;
     let Reject;
     let Quoted;
+    let FAQ;
     if (account.role === "ADMIN") {
       AllRequests = await countAllRequests();
       Pending = await countPendingRequests();
@@ -75,6 +77,7 @@ export async function GET(request: NextRequest) {
       InProgress = await countInProgressRequests();
       Reject = await countRejectRequests();
       Quoted = await countQuotedRequests();
+      FAQ = await countNotPublishedFAQ();
     }
     if (account.role === "SUBADMIN") {
       AllRequests = await countAllRequestsForSubAdmin(governorate) ;
@@ -84,6 +87,7 @@ export async function GET(request: NextRequest) {
       InProgress = await countInProgressRequestsForSubAdmin(governorate) ;
       Reject = await countRejectRequestsForSubAdmin(governorate) ;
       Quoted = await countQuotedRequestsForSubAdmin(governorate) ;
+      FAQ = await countNotPublishedFAQ();
     }
     if (account.role === "TECHNICAL") {
       AllRequests = await countAllRequestsForTech(account.id) ;
@@ -106,7 +110,7 @@ export async function GET(request: NextRequest) {
 
 
 
-    return NextResponse.json({AllRequests,Pending,Assign,Complete,InProgress,Reject,Quoted}, { status: 200 });
+    return NextResponse.json({AllRequests,Pending,Assign,Complete,InProgress,Reject,Quoted,FAQ}, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
