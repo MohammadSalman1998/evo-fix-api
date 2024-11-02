@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const faq = await createFAQ(data);
     await createNotification({
       recipientId: admin?.id || 0,
-      senderId: 0,
+      senderId: admin?.id || 0,
       title: "سؤال جديد",
       content: `${data.question}`,
     });
