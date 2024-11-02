@@ -87,7 +87,9 @@ export async function GET(request: NextRequest, { params }: Props) {
         (userFromToken.role === "SUBADMIN" &&
           subAdminUser?.subadmin?.governorate === user.governorate))
     ) {
-      return NextResponse.json(user, { status: 200 });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = user;
+      return NextResponse.json(userWithoutPassword, { status: 200 });
     }
 
     return NextResponse.json(
