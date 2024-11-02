@@ -50,6 +50,10 @@ export async function GET(request: NextRequest, { params }: Props) {
         customer: true,
         technician: true,
         subadmin: true,
+        maintenanceRequests:true,
+        Epaid:true,
+        Review:true,
+        Invoice:true
       },
     });
 
