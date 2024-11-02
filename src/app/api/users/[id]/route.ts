@@ -63,22 +63,22 @@ export async function GET(request: NextRequest, { params }: Props) {
         { status: 404 }
       );
     }
-    const userResponse = {
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      phoneNO: user.phoneNO,
-      governorate: user.governorate,
-      address: user.address,
-      // avatar: user.avatar,
-      role: user.role,
-      isActive: user.isActive,
-      // customerId: user.customer?.id,
-      technician_specialization: user.technician?.specialization,
-      technician_services: user.technician?.services,
-      admin_department: user.subadmin?.department,
-      admin_governorate: user.subadmin?.governorate,
-    };
+    // const userResponse = {
+    //   id: user.id,
+    //   fullName: user.fullName,
+    //   email: user.email,
+    //   phoneNO: user.phoneNO,
+    //   governorate: user.governorate,
+    //   address: user.address,
+    //   // avatar: user.avatar,
+    //   role: user.role,
+    //   isActive: user.isActive,
+    //   // customerId: user.customer?.id,
+    //   technician_specialization: user.technician?.specialization,
+    //   technician_services: user.technician?.services,
+    //   admin_department: user.subadmin?.department,
+    //   admin_governorate: user.subadmin?.governorate,
+    // };
 
     if (
       userFromToken !== null &&
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest, { params }: Props) {
         (userFromToken.role === "SUBADMIN" &&
           subAdminUser?.subadmin?.governorate === user.governorate))
     ) {
-      return NextResponse.json(userResponse, { status: 200 });
+      return NextResponse.json(user, { status: 200 });
     }
 
     return NextResponse.json(
