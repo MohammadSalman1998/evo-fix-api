@@ -31,21 +31,45 @@ export async function POST(request: NextRequest) {
 
     const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
     const body = (await request.json()) as createReviewDto;
+    const oldRivew = await prisma.review.findFirst({
+      where: {userId:account.id}
+    })
     const reviewData: createReviewDto = {
       userId: account.id,
       rating: body.rating,
       comment: body.comment,
     };
-    const review = await createReview(reviewData);
+    if(!oldRivew){
+      const review = await createReview(reviewData);
+  
+      await createNotification({
+        senderId: account.id,
+        recipientId: admin?.id || 0,
+        title: "تقييم جديد",
+        content: `تقييم جديد باسم: "${account.fullName}" - درجة التقييم: "${review.rating}" - التعليق: "${review.comment}"`,
+      });
+  
+      return NextResponse.json(review, { status: 201 });
+    }else{
+      const updateReview = await prisma.review.update({
+        where:{id:oldRivew.id,userId: account.id},
+        data:{
+          rating: reviewData.rating,
+          comment: reviewData.comment,
+          isActive:false
+        }
+      })
 
-    await createNotification({
-      senderId: account.id,
-      recipientId: admin?.id || 0,
-      title: "تقييم جديد",
-      content: `تقييم جديد باسم: "${account.fullName}" - درجة التقييم: "${review.rating}" - التعليق: "${review.comment}"`,
-    });
-
-    return NextResponse.json(review, { status: 201 });
+      await createNotification({
+        senderId: account.id,
+        recipientId: admin?.id || 0,
+        title: "تعديل تقييم",
+        content: `تعديل تقييم باسم: "${account.fullName}" - درجة التقييم: "${updateReview.rating}" - التعليق: "${updateReview.comment}"`,
+      });
+  
+      return NextResponse.json(updateReview, { status: 201 });
+    }
+   
   } catch (error) {
     console.error("Error create review", error);
     return NextResponse.json({ message: "خطأ في السيرفر" }, { status: 500 });
