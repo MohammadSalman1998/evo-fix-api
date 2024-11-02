@@ -7,6 +7,30 @@ import {
   countAllRequestsForSubAdmin,
   countAllRequestsForTech,
   countAllRequestsForUser,
+  countAssignRequests,
+  countAssignRequestsForSubAdmin,
+  countAssignRequestsForTech,
+  countAssignRequestsForUser,
+  countCompleteRequests,
+  countCompleteRequestsForSubAdmin,
+  countCompleteRequestsForTech,
+  countCompleteRequestsForUser,
+  countInProgressRequests,
+  countInProgressRequestsForSubAdmin,
+  countInProgressRequestsForTech,
+  countInProgressRequestsForUser,
+  countPendingRequests,
+  countPendingRequestsForSubAdmin,
+  countPendingRequestsForTech,
+  countPendingRequestsForUser,
+  countQuotedRequests,
+  countQuotedRequestsForSubAdmin,
+  countQuotedRequestsForTech,
+  countQuotedRequestsForUser,
+  countRejectRequests,
+  countRejectRequestsForSubAdmin,
+  countRejectRequestsForTech,
+  countRejectRequestsForUser,
 } from "@/lib/requests";
 
 /**
@@ -35,21 +59,54 @@ export async function GET(request: NextRequest) {
       },
     });
     const governorate = infoAccount?.subadmin?.governorate as string;
-    let count;
+    const specialization = infoAccount?.technician?.specialization as string;
+    let AllRequests;
+    let Pending;
+    let Assign;
+    let Complete;
+    let InProgress;
+    let Reject;
+    let Quoted;
     if (account.role === "ADMIN") {
-      count = await countAllRequests();
+      AllRequests = await countAllRequests();
+      Pending = await countPendingRequests();
+      Assign = await countAssignRequests();
+      Complete = await countCompleteRequests();
+      InProgress = await countInProgressRequests();
+      Reject = await countRejectRequests();
+      Quoted = await countQuotedRequests();
     }
     if (account.role === "SUBADMIN") {
-      count = await countAllRequestsForSubAdmin(governorate);
+      AllRequests = await countAllRequestsForSubAdmin(governorate) ;
+      Pending = await countPendingRequestsForSubAdmin(governorate) ;
+      Assign = await countAssignRequestsForSubAdmin(governorate) ;
+      Complete = await countCompleteRequestsForSubAdmin(governorate) ;
+      InProgress = await countInProgressRequestsForSubAdmin(governorate) ;
+      Reject = await countRejectRequestsForSubAdmin(governorate) ;
+      Quoted = await countQuotedRequestsForSubAdmin(governorate) ;
     }
     if (account.role === "TECHNICAL") {
-      count = await countAllRequestsForTech(account.id);
+      AllRequests = await countAllRequestsForTech(account.id) ;
+      Pending = await countPendingRequestsForTech(specialization) ;
+      Assign = await countAssignRequestsForTech(account.id) ;
+      Complete = await countCompleteRequestsForTech(account.id) ;
+      InProgress = await countInProgressRequestsForTech(account.id) ;
+      Reject = await countRejectRequestsForTech(account.id) ;
+      Quoted = await countQuotedRequestsForTech(account.id) ;
     }
     if (account.role === "USER") {
-      count = await countAllRequestsForUser(account.id);
+      AllRequests = await countAllRequestsForUser(account.id) ;
+      Pending = await countPendingRequestsForUser(account.id) ;
+      Assign = await countAssignRequestsForUser(account.id) ;
+      Complete = await countCompleteRequestsForUser(account.id) ;
+      InProgress = await countInProgressRequestsForUser(account.id) ;
+      Reject = await countRejectRequestsForUser(account.id) ;
+      Quoted = await countQuotedRequestsForUser(account.id) ;
     }
 
-    return NextResponse.json({ count }, { status: 200 });
+
+
+    return NextResponse.json({AllRequests,Pending,Assign,Complete,InProgress,Reject,Quoted}, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });

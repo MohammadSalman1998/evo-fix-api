@@ -536,7 +536,7 @@ export async function countPendingRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -552,7 +552,7 @@ export async function countAssignRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -568,7 +568,7 @@ export async function countCompleteRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -584,7 +584,7 @@ export async function countInProgressRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -600,7 +600,7 @@ export async function countRejectRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -616,7 +616,7 @@ export async function countQuotedRequests() {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -630,7 +630,7 @@ export async function countAllRequests() {
     const countRequest = await prisma.maintenanceRequest.count();
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -649,7 +649,7 @@ export async function countPendingRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -665,7 +665,7 @@ export async function countAssignRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -681,7 +681,7 @@ export async function countCompleteRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -697,7 +697,7 @@ export async function countInProgressRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -713,7 +713,7 @@ export async function countRejectRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -729,7 +729,7 @@ export async function countQuotedRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -745,7 +745,7 @@ export async function countAllRequestsForSubAdmin(governorate: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -763,7 +763,7 @@ export async function countPendingRequestsForTech(service: string) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -779,7 +779,7 @@ export async function countAssignRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -795,7 +795,7 @@ export async function countCompleteRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -811,7 +811,7 @@ export async function countInProgressRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -827,7 +827,7 @@ export async function countRejectRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -843,7 +843,7 @@ export async function countQuotedRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -859,7 +859,7 @@ export async function countAllRequestsForTech(techId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -878,7 +878,7 @@ export async function countPendingRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -894,7 +894,7 @@ export async function countAssignRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -910,7 +910,7 @@ export async function countCompleteRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -926,7 +926,7 @@ export async function countInProgressRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -942,7 +942,7 @@ export async function countRejectRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -958,7 +958,7 @@ export async function countQuotedRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
@@ -974,7 +974,7 @@ export async function countAllRequestsForUser(userId: number) {
     });
 
     if (countRequest < 1) {
-      return { message: "لا يوجد طلبات حاليا" };
+      return 0;
     } 
     return countRequest;
   } catch (error) {
