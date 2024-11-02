@@ -1,6 +1,7 @@
 // src\app\api\fAQ\route.ts
 
 import { createFAQ, getAllFAQ } from "@/lib/faq";
+import { createNotification } from "@/lib/notification";
 import prisma from "@/utils/db";
 import { createFAQDto } from "@/utils/dtos";
 import { verifyToken } from "@/utils/verifyToken";
@@ -17,11 +18,22 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as createFAQDto;
+    const admin = await prisma.user.findFirst({
+      where:{role:"ADMIN"},
+      select:{id:true}
+    })
     const data: createFAQDto = {
       question: body.question,
       category: body.category,
     };
     const faq = await createFAQ(data);
+    await createNotification({
+      recipientId: admin?.id || 0,
+      senderId: 0,
+      title: "سؤال جديد",
+      content: `${data.question}`,
+    });
+
     return NextResponse.json(
       { message: "تم إرسال السؤال بنجاح", faq },
       { status: 201 }
