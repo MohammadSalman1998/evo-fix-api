@@ -182,12 +182,16 @@ export async function PUT(request: NextRequest, { params }: Props) {
             ? {
                 upsert: {
                   create: {
-                    department: body.department,
-                    governorate: body.governorateAdmin || body.governorate,
+                    governorate: body.governorateAdmin,
+                     department: `مدير محافظة ${
+                      body.governorateAdmin 
+                    } بقسم الصيانة`,
                   },
                   update: {
-                    department: body.department,
-                    governorate: body.governorateAdmin || body.governorate,
+                    governorate: body.governorateAdmin,
+                    department: `مدير محافظة ${
+                      body.governorateAdmin 
+                    } بقسم الصيانة`,
                   },
                 },
               }
