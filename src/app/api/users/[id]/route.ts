@@ -160,7 +160,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
         phoneNO: body.phoneNO,
         address: body.address,
         avatar: body.avatar,
-        isActive:  body.isActive || user.isActive,
+        isActive: user.role == Role.ADMIN || user.role == Role.SUBADMIN? body.isActive || user.isActive : user.isActive,
         role: (body.role as Role) || user.role,
         technician:
           user.role === "TECHNICAL"
