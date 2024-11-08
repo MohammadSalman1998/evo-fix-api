@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/utils/verifyToken";
 import { PendingRequests } from "@/lib/requests";
+import prisma from "@/utils/db";
 
 
 /**
@@ -20,7 +21,13 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
-   const PendingRequest = await PendingRequests()
+    const tech = await prisma.user.findUnique({
+      where:{id: account.id},
+      include:{technician:true}
+    })
+    const governorate = tech?.governorate as string
+    const specialization = tech?.technician?.specialization as string
+   const PendingRequest = await PendingRequests(governorate, specialization)
    return NextResponse.json(PendingRequest, { status: 200 });
   } catch (error) {
     console.error("Error fetching  maintenance requests", error);

@@ -3,10 +3,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { UpdateMaintenance_RequestDto } from "@/utils/dtos";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
-
-export async function PendingRequests() {
+export async function PendingRequests(governorate: string, service: string) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
       where: { status: "PENDING" },
@@ -17,7 +16,13 @@ export async function PendingRequests() {
     }
 
     const requests = await prisma.maintenanceRequest.findMany({
-      where: { status: "PENDING" },
+      where: {
+        status: "PENDING",
+        technician: {
+          specialization: service,
+          user: { governorate },
+        },
+      },
       select: {
         id: true,
         governorate: true,
@@ -31,11 +36,11 @@ export async function PendingRequests() {
         status: true,
         createdAt: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -71,17 +76,17 @@ export async function Requests(TechID: number, statusRequest: RequestStatus) {
         cost: true,
         status: true,
         createdAt: true,
-        technician:{
-          select:{
-            user:true
-          }
-        }
+        technician: {
+          select: {
+            user: true,
+          },
+        },
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -118,13 +123,13 @@ export async function QuotedRequests() {
         status: true,
         createdAt: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
-    return formattedRequests
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -159,13 +164,13 @@ export async function InProgressRequests() {
         status: true,
         createdAt: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
-    return formattedRequests
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -200,13 +205,13 @@ export async function RejectedRequests() {
         status: true,
         createdAt: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
-    return formattedRequests
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -241,13 +246,13 @@ export async function CompletedRequests() {
         status: true,
         createdAt: true,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
-    return formattedRequests
+    return formattedRequests;
   } catch (error) {
     console.error("Error fetching all maintenance requests", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -281,9 +286,9 @@ export async function AllTechTasks(TechID: number) {
       },
       orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -340,9 +345,9 @@ export async function AllRequests() {
       },
       orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -400,9 +405,9 @@ export async function AllRequestsByGovernorate(governorate: string) {
       },
       orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -445,9 +450,9 @@ export async function AllUserRequests(userID: number) {
       },
       orderBy: { createdAt: "desc" },
     });
-    const formattedRequests = requests.map(request => ({
+    const formattedRequests = requests.map((request) => ({
       ...request,
-      createdAt: dayjs(request.createdAt).format('YYYY-MM-DD HH:mm'),
+      createdAt: dayjs(request.createdAt).format("YYYY-MM-DD HH:mm"),
     }));
     return formattedRequests;
   } catch (error) {
@@ -519,13 +524,12 @@ export async function updateRequest(
         isPaidCheckFee,
       },
     });
-    return updateRequest
+    return updateRequest;
   } catch (error) {
     console.log("error update request maintenance", error);
     throw new Error("error update request maintenance");
   }
 }
-
 
 // ======================== counts of Admin =======================================
 
@@ -537,11 +541,11 @@ export async function countPendingRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -553,11 +557,11 @@ export async function countAssignRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -569,11 +573,11 @@ export async function countCompleteRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -585,11 +589,11 @@ export async function countInProgressRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -601,11 +605,11 @@ export async function countRejectRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -617,11 +621,11 @@ export async function countQuotedRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -631,14 +635,13 @@ export async function countAllRequests() {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
-
 
 // ======================== counts of SubAdmin =======================================
 
@@ -650,11 +653,11 @@ export async function countPendingRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -666,11 +669,11 @@ export async function countAssignRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -682,11 +685,11 @@ export async function countCompleteRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -698,11 +701,11 @@ export async function countInProgressRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -714,11 +717,11 @@ export async function countRejectRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -730,27 +733,27 @@ export async function countQuotedRequestsForSubAdmin(governorate: string) {
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countAllRequestsForSubAdmin(governorate: string) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where:{governorate}
+      where: { governorate },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
@@ -759,226 +762,225 @@ export async function countAllRequestsForSubAdmin(governorate: string) {
 export async function countPendingRequestsForTech(service: string) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "PENDING", technician:{services:service} },
+      where: { status: "PENDING", technician: { services: service } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countAssignRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "ASSIGNED" , technicianId: techId },
+      where: { status: "ASSIGNED", technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countCompleteRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "COMPLETED" , technicianId: techId },
+      where: { status: "COMPLETED", technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countInProgressRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "IN_PROGRESS" , technicianId: techId },
+      where: { status: "IN_PROGRESS", technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countRejectRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "REJECTED" , technicianId: techId },
+      where: { status: "REJECTED", technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countQuotedRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "QUOTED" , technicianId: techId },
+      where: { status: "QUOTED", technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countAllRequestsForTech(techId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where:{technicianId: techId}
+      where: { technicianId: techId },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
-
 
 // ======================== counts of User =======================================
 
 export async function countPendingRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "PENDING", user:{id:userId} },
+      where: { status: "PENDING", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countAssignRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "ASSIGNED", user:{id:userId} },
+      where: { status: "ASSIGNED", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countCompleteRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "COMPLETED", user:{id:userId} },
+      where: { status: "COMPLETED", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countInProgressRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "IN_PROGRESS", user:{id:userId} },
+      where: { status: "IN_PROGRESS", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countRejectRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "REJECTED", user:{id:userId} },
+      where: { status: "REJECTED", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countQuotedRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where: { status: "QUOTED", user:{id:userId} },
+      where: { status: "QUOTED", user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
 
 export async function countAllRequestsForUser(userId: number) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
-      where:{user:{id:userId}}
+      where: { user: { id: userId } },
     });
 
     if (countRequest < 1) {
       return 0;
-    } 
+    }
     return countRequest;
   } catch (error) {
     console.error(error);
-    throw new Error("Failed: "+error);
+    throw new Error("Failed: " + error);
   }
 }
