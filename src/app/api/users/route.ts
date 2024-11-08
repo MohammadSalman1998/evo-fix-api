@@ -56,9 +56,7 @@ export async function GET(request: NextRequest) {
         id: {
           not: adminToken?.id,
         },
-        role: {
-          notIn: ["ADMIN", "SUBADMIN"],
-        },
+        role: "USER",
       },
       include: {
         customer: true,
