@@ -329,6 +329,12 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     ) {
       await prisma.$transaction(async (prisma) => {
         // Delete all related records first
+        if (user.Epaid.length > 0) {
+          await prisma.epaid.deleteMany({
+            where: { senderId: user.id }
+          });
+        }
+        
         if (user.maintenanceRequests.length > 0) {
           await prisma.maintenanceRequest.deleteMany({
             where: { customerId: user.id }
@@ -353,11 +359,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           });
         }
 
-        if (user.Epaid.length > 0) {
-          await prisma.epaid.deleteMany({
-            where: { senderId: user.id }
-          });
-        }
+        
 
         if (user.sentSMS.length > 0) {
           await prisma.sMS.deleteMany({
