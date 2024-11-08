@@ -19,9 +19,9 @@ export async function PendingRequests(governorate: string, service: string) {
       where: {
         status: "PENDING",
         technician: {
-          specialization: service,
           user: { governorate },
         },
+        deviceType: service
       },
       select: {
         id: true,
