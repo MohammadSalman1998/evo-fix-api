@@ -5,7 +5,7 @@ import { RequestStatus } from "@prisma/client";
 import { UpdateMaintenance_RequestDto } from "@/utils/dtos";
 import dayjs from "dayjs";
 
-export async function PendingRequests(governorate: string, service: string) {
+export async function PendingRequests(service: string) {
   try {
     const countRequest = await prisma.maintenanceRequest.count({
       where: { status: "PENDING" },
@@ -18,9 +18,6 @@ export async function PendingRequests(governorate: string, service: string) {
     const requests = await prisma.maintenanceRequest.findMany({
       where: {
         status: "PENDING",
-        technician: {
-          user: { governorate },
-        },
         deviceType: service
       },
       select: {

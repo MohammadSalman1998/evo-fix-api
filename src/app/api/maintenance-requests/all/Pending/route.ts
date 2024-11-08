@@ -25,9 +25,8 @@ export async function GET(request: NextRequest) {
       where:{id: account.id},
       include:{technician:true}
     })
-    const governorate = tech?.governorate as string
     const specialization = tech?.technician?.specialization as string
-   const PendingRequest = await PendingRequests(governorate, specialization)
+   const PendingRequest = await PendingRequests(specialization)
    return NextResponse.json(PendingRequest, { status: 200 });
   } catch (error) {
     console.error("Error fetching  maintenance requests", error);
