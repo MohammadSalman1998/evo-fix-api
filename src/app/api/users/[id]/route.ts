@@ -217,6 +217,7 @@ export async function PUT(request: NextRequest, { params }: Props) {
       technician_services: updatedUser.technician?.services,
       admin_department: updatedUser.subadmin?.department,
       admin_governorate: updatedUser.subadmin?.governorate,
+      isActive: updatedUser.isActive
     };
 
     if (
