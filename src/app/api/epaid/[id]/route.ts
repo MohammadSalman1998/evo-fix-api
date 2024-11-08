@@ -93,15 +93,15 @@ export async function POST(
       },
     });
 
-    if(!subAdmin){
-      return NextResponse.json(
-        {
-          message:
-            "تأكد SUBADMIN ان كان موجود",
-        },
-        { status: 400 }
-      );
-    }
+    // if(!subAdmin){
+    //   return NextResponse.json(
+    //     {
+    //       message:
+    //         "تأكد SUBADMIN ان كان موجود",
+    //     },
+    //     { status: 400 }
+    //   );
+    // }
 
     const technician = await prisma.user.findUnique({
       where: { id: techID || 0 },
@@ -111,7 +111,7 @@ export async function POST(
       return NextResponse.json(
         {
           message:
-            "تأكد التقني ان كان موجود",
+            "تأكد من التقني ان كان موجود",
         },
         { status: 400 }
       );
@@ -213,14 +213,7 @@ export async function POST(
       requestId: data.requestId,
     }),
 
-    // Create notification for the subAdmin
-     createNotification({
-      recipientId: subAdmin?.id || 0,
-      senderId: user.id,
-      title: data.title,
-      content: contentData,
-      requestId: data.requestId,
-    }),
+   
 
     // Create notification for the user
      createNotification({
@@ -242,16 +235,7 @@ export async function POST(
       requestId: data.requestId,
     }),
 
-    // Create email for the subAdmin
-     sendRealMail({
-      recipientName: subAdmin?.fullName,
-      mainContent: "تم استكمال رسوم الصيانة بنجاح ",
-      additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
-    },{
-      to: subAdmin?.email || "",
-      subject: data.title,
-      requestId: data.requestId,
-    }),
+    
 
     // Create email for the user
      sendRealMail({
@@ -262,8 +246,29 @@ export async function POST(
       to: maintenanceCompleted.user.email,
       subject: data.userTitle,
       requestId: data.requestId,
-    })
+    }),
   ])
+
+   // Create email for the subAdmin
+   if(subAdmin){
+   await sendRealMail({
+      recipientName: subAdmin?.fullName,
+      mainContent: "تم استكمال رسوم الصيانة بنجاح ",
+      additionalContent: `للتذكير، بيانات الطلب: <br/> ${contentEmailData}`,
+    },{
+      to: subAdmin?.email || "",
+      subject: data.title,
+      requestId: data.requestId,
+    })
+     // Create notification for the subAdmin
+  await createNotification({
+    recipientId: subAdmin?.id || 0,
+    senderId: user.id,
+    title: data.title,
+    content: contentData,
+    requestId: data.requestId,
+  })
+  }
 
     return NextResponse.json({
       message: "تم دفع رسوم الصيانة بنجاح سيتم الاتصال بك وإعادة الجهاز مباشرة",
