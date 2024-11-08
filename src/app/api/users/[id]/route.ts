@@ -334,6 +334,11 @@ export async function DELETE(request: NextRequest, { params }: Props) {
             where: { senderId: user.id }
           });
         }
+        if (user.Invoice.length > 0) {
+          await prisma.invoice.deleteMany({
+            where: { userId: user.id }
+          });
+        }
         
         if (user.maintenanceRequests.length > 0) {
           await prisma.maintenanceRequest.deleteMany({
@@ -379,11 +384,7 @@ export async function DELETE(request: NextRequest, { params }: Props) {
           });
         }
 
-        if (user.Invoice.length > 0) {
-          await prisma.invoice.deleteMany({
-            where: { userId: user.id }
-          });
-        }
+        
 
         // Delete related entities
         if (user.customer) {
