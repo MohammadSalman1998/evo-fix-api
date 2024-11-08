@@ -4,7 +4,7 @@ import prisma from "@/utils/db";
 import { RequestStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notification";
 import { verifyToken } from "@/utils/verifyToken";
-import {sendRealMail } from "@/lib/email";
+import { sendRealMail } from "@/lib/email";
 
 /**
  *  @method PUT
@@ -32,7 +32,7 @@ export async function PUT(
         user: {
           select: {
             isActive: true,
-            email:true
+            email: true,
           },
         },
       },
@@ -45,10 +45,7 @@ export async function PUT(
       );
     }
 
-    if (
-      user.id !== maintenance?.customerId ||
-      !maintenance.user.isActive
-    ) {
+    if (user.id !== maintenance?.customerId || !maintenance.user.isActive) {
       return NextResponse.json(
         { message: "ليس لديك الصلاحية بهذا الطلب" },
         { status: 403 }
@@ -65,7 +62,7 @@ export async function PUT(
     const maintenanceRequest = await prisma.maintenanceRequest.update({
       where: {
         id: requestId,
-        status: "QUOTED",
+        OR: [{ status: "QUOTED" }, { status: "ASSIGNED" }],
       },
       data: {
         status: RequestStatus.REJECTED,
@@ -116,26 +113,26 @@ export async function PUT(
 
     // Send email to the technician
     if (maintenanceRequest.technician && maintenanceRequest.technician.user) {
-
       // Create notification for the technician
       await createNotification({
         recipientId: maintenanceRequest.technician?.user.id,
         senderId: user.id,
         title: "رفض تكلفة الطلب",
         content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} يمكنك إعادة القطعة`,
-        requestId: maintenanceRequest.id
+        requestId: maintenanceRequest.id,
       });
 
-     
-
-      await sendRealMail({
-        recipientName: maintenanceRequest.technician.user.fullName,
-        mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
-        additionalContent: `يمكنك إعادة القطعة إلى العنوان التالي "${maintenanceRequest.address}"`,
-      },{
-        to: maintenanceRequest.technician.user.email,
-        subject: " رفض تكلفة طلب صيانة",
-      });
+      await sendRealMail(
+        {
+          recipientName: maintenanceRequest.technician.user.fullName,
+          mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
+          additionalContent: `يمكنك إعادة القطعة إلى العنوان التالي "${maintenanceRequest.address}"`,
+        },
+        {
+          to: maintenanceRequest.technician.user.email,
+          subject: " رفض تكلفة طلب صيانة",
+        }
+      );
     }
 
     await createNotification({
@@ -143,17 +140,20 @@ export async function PUT(
       senderId: user.id,
       title: "رفض تكلفة الطلب",
       content: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} نتمنى أن تراسلنا لمعرفة السبب`,
-      requestId: maintenanceRequest.id
+      requestId: maintenanceRequest.id,
     });
 
-    await sendRealMail({
-      recipientName: user.fullName,
-      mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
-      additionalContent: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} نتمنى أن تراسلنا لمعرفة السبب`,
-    },{
-      to:maintenance.user.email,
-      subject: " رفض تكلفة طلب صيانة",
-    });
+    await sendRealMail(
+      {
+        recipientName: user.fullName,
+        mainContent: `لقد تم رفض تكلفة طلب الصيانة ${maintenanceData.deviceType}`,
+        additionalContent: `تم رفض عرض السعر لطلب الصيانة - ${maintenanceData.deviceType} نتمنى أن تراسلنا لمعرفة السبب`,
+      },
+      {
+        to: maintenance.user.email,
+        subject: " رفض تكلفة طلب صيانة",
+      }
+    );
 
     return NextResponse.json({
       message: "تم رفض عرض السعر ",
@@ -161,9 +161,6 @@ export async function PUT(
     });
   } catch (error) {
     console.error("Error accepting cost quote", error);
-    return NextResponse.json(
-      { message: " خطأ من الخادم" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: " خطأ من الخادم" }, { status: 500 });
   }
 }
