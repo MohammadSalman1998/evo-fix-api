@@ -34,6 +34,7 @@ export async function createReview({
           id:true,
           rating:true,
           comment:true,
+          isActive:true,
           user:{
             select:{
                 fullName:true,
@@ -60,6 +61,7 @@ export async function createReview({
           id:true,
           rating:true,
           comment:true,
+          isActive:true,
           user:{
             select:{
                 fullName:true,
@@ -102,6 +104,7 @@ export async function getAllReviewsActive(){
         id:true,
         rating:true,
         comment:true,
+        isActive:true,
         user:{
           select:{
               fullName:true,
