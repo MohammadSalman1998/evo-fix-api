@@ -1,15 +1,13 @@
 // src\app\api\maintenance-requests\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
-// import { Role, RequestStatus } from '@prisma/client';
 import { sendRealMail } from "@/lib/email";
 import { createNotification } from "@/lib/notification";
-// import { MaintenanceRequestSchema } from "@/utils/validationSchemas";
 import { verifyToken } from "@/utils/verifyToken";
 import { CreateMaintenance_RequestDto } from "@/utils/dtos";
 import { uploadImage } from "@/utils/uploadImage";
 import { Role } from "@prisma/client";
-
+import { validateWithAI } from "@/utils/ai-validator";
 /**
  *  @method POST
  *  @route  ~/api/maintenance-requests
@@ -38,14 +36,6 @@ export async function POST(request: NextRequest) {
 
     const image = formData.get("deviceImage") as File | null;
 
-    // const validation = MaintenanceRequestSchema.safeParse(body);
-    // if (!validation.success) {
-    //   return NextResponse.json(
-    //     { message: validation.error.errors[0].message },
-    //     { status: 400 }
-    //   );
-    // }
-
     if (
       body.governorate === null ||
       body.phoneNO === null ||
@@ -65,6 +55,31 @@ export async function POST(request: NextRequest) {
       deviceImageUrl = await uploadImage(Buffer.from(imageBuffer));
     }
 
+    // In your API route
+
+    try {
+      const validation = await validateWithAI({
+        deviceImage: formData.get("deviceImage") as File,
+        problemDescription: formData.get("problemDescription") as string,
+      });
+
+      if (!validation.isValid) {
+        return NextResponse.json(
+          {
+            message: validation.message,
+            suggestions: validation.suggestions,
+          },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      console.error("Validation error:", error);
+      return NextResponse.json(
+        { message: "حدث خطأ أثناء التحقق من الطلب" },
+        { status: 500 }
+      );
+    }
+
     const newRequest = await prisma.maintenanceRequest.create({
       data: {
         customerId: user.id,
@@ -79,10 +94,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // const userData = await prisma.user.findUnique({
-    //   where: { id: user.id, isActive: true },
-    // });
-
     const technicians = await prisma.user.findMany({
       where: {
         role: Role.TECHNICAL,
@@ -90,7 +101,7 @@ export async function POST(request: NextRequest) {
         technician: { specialization: body.deviceType },
         governorate: body.governorate,
       },
-      orderBy:{createdAt:"desc"}
+      orderBy: { createdAt: "desc" },
     });
 
     const data = {
@@ -141,21 +152,6 @@ export async function POST(request: NextRequest) {
       title: data.title,
       content: userContent,
     });
-
-    //   if (userData) {
-    //     await sendRealMail({
-    //       to: userData.email,
-    //       subject: data.title,
-    //       requestId: newRequest.id,
-    //       html: `
-    //   <div dir="rtl">
-    //     <h1>مرحبا بكم في منصتنا الخدمية EvoFix</h1>
-    //     <h1>سيد/ة ${user.fullName}</h1>
-    //     <h3>${userContent}</h3>
-    //   </div>
-    // `,
-    //     });
-    //   }
 
     return NextResponse.json(
       { message: "تم إنشاء طلب الصيانة بنجاح", request: newRequest },
