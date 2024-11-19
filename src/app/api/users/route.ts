@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
         address: userByGovernorate.address,
         role: userByGovernorate.role,
         isActive: userByGovernorate.isActive,
+        isVerified: userByGovernorate.isVerified,
         technician_specialization: userByGovernorate.technician?.specialization,
         technician_services: userByGovernorate.technician?.services,
       })
@@ -104,6 +105,7 @@ export async function GET(request: NextRequest) {
       address: user.address,
       role: user.role,
       isActive: user.isActive,
+      isVerified: user.isVerified,
       technician_specialization: user.technician?.specialization,
       technician_services: user.technician?.services,
       admin_department: user.subadmin?.department,
@@ -224,6 +226,7 @@ export async function POST(request: NextRequest) {
       phoneNO: newUser.phoneNO,
       governorate: newUser.governorate,
       role: newUser.role,
+      isVerified: newUser.isVerified,
       // customerId: newUser.customer?.id,
       technician_specialization: newUser.technician?.specialization,
       technician_services: newUser.technician?.services,
