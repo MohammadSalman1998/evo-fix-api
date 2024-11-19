@@ -116,11 +116,15 @@ export async function validateWithAI(request: MaintenanceRequest): Promise<AIVal
       textConfidence;
 
     // const isValid = combinedConfidence > 0.6;
-
-    const isValid = (textConfidence > 0.6 || imageAnalysis.confidence > 0.6) && 
-                (imageAnalysis.labels.some(label => label.toLowerCase().includes('screen') || 
-                                                     label.toLowerCase().includes('monitor') || 
-                                                     label.toLowerCase().includes('display')));
+    let isValid;
+    if(request.deviceImage){
+       isValid = (textConfidence > 0.4 || imageAnalysis.confidence > 0.6) && 
+      (imageAnalysis.labels.some(label => label.toLowerCase().includes('screen') || 
+      label.toLowerCase().includes('monitor') || 
+      label.toLowerCase().includes('display')));
+    }else{
+      isValid = textConfidence > 0.4
+    }
 
 
     let message: string;

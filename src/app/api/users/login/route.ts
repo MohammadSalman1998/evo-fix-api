@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
           governorate: user.governorate,
           address: user.address,
           phoneNO: user.phoneNO,
-          role: user.role
+          role: user.role,
+          isVerified: user.isVerified
         },
       },
       {
