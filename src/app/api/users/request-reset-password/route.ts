@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import jwt from "jsonwebtoken";
 import { sendRealMail } from "@/lib/email";
+import { HOME_EVOFIX } from "@/utils/constants";
 
 
 /**
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     const token = jwt.sign({ id: user.id }, secret, { expiresIn: "15m" }); // Valid for 15 minutes
 
     // const resetLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/resetPassword?token=${token}&id=${user.id}`;
-    const resetLink = `https://evo-fi.vercel.app/resetPassword?token=${token}&id=${user.id}`;
+    const resetLink = `${HOME_EVOFIX}/resetPassword?token=${token}&id=${user.id}`;
   
     // Send email
     await sendRealMail({

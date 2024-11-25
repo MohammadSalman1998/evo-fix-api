@@ -11,6 +11,7 @@ import { generateJWT } from "@/utils/generateToken";
 import { sendRealMail } from "@/lib/email";
 // import { sendSms } from "@/lib/sms";
 import jwt from "jsonwebtoken";
+import { HOME_EVOFIX } from "@/utils/constants";
 
 /**
  *  @method GET
@@ -239,7 +240,7 @@ export async function POST(request: NextRequest) {
     const token = jwt.sign({ id: newUser.id }, secret, { expiresIn: "15m" });
 
     // رابط التحقق
-    const verificationLink = `https://evo-fi.vercel.app/verify-email?token=${token}&id=${newUser.id}`;
+    const verificationLink = `${HOME_EVOFIX}/verify-email?token=${token}&id=${newUser.id}`;
 
     // إرسال البريد الإلكتروني
     await sendRealMail(
