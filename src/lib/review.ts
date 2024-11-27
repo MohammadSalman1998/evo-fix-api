@@ -82,10 +82,17 @@ export async function createReview({
 
 export async function updateReviewActive(id: number){
   try {
-    const updateReview = await prisma.review.update({
+    const reviw = await prisma.review.findUnique({where:{id}})
+
+    const updateReview = reviw?.isActive === false? await prisma.review.update({
       where:{id},
      data:{
       isActive:true
+     }
+    }) : await prisma.review.update({
+      where:{id},
+     data:{
+      isActive:false
      }
     });
 
