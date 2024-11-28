@@ -86,7 +86,10 @@ export async function getUserNotifications(
         request:{
           select:{
             isPaid:true,
-            isPaidCheckFee:true
+            isPaidCheckFee:true,
+            status: true,
+            cost: true,
+            resultCheck:true,
           }
         }
       },
