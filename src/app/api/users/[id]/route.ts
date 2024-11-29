@@ -64,6 +64,9 @@ export async function GET(request: NextRequest, { params }: Props) {
       );
     }
 
+    console.log("User Role:", user.role);
+    console.log("Token User Role:", userFromToken.role);
+
     const hasAccess = checkUserAccess(userFromToken, user);
 
     if (!hasAccess) {
@@ -450,8 +453,8 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function  checkUserAccess(userFromToken: any, targetUser: any) {
- 
+async function checkUserAccess(userFromToken: any, targetUser: any): Promise<boolean> {
+
   if (userFromToken.id === targetUser.id) {
     return true;
   }
@@ -461,19 +464,24 @@ async function  checkUserAccess(userFromToken: any, targetUser: any) {
   }
 
   if (userFromToken.role === "SUBADMIN") {
-    const subAdmin = await prisma.user.findUnique({
-      where: { id: userFromToken.id },
-      select: { 
-        subadmin: { 
-          select: { 
-            governorate: true 
+    try {
+      const subAdmin = await prisma.user.findUnique({
+        where: { id: userFromToken.id },
+        select: { 
+          subadmin: { 
+            select: { 
+              governorate: true 
+            } 
           } 
-        } 
-      }
-    });
+        }
+      });
 
-    return subAdmin?.subadmin?.governorate === targetUser.governorate;
-}
+      return subAdmin?.subadmin?.governorate === targetUser.governorate;
+    } catch (error) {
+      console.error("Error checking subadmin access:", error);
+      return false;
+    }
+  }
 
   return false;
 }
