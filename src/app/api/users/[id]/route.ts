@@ -80,17 +80,31 @@ export async function GET(request: NextRequest, { params }: Props) {
     //   admin_governorate: user.subadmin?.governorate,
     // };
 
-    if (
-      userFromToken !== null &&
-      (userFromToken.id === user.id ||
-        userFromToken.role === "ADMIN" ||
-        (userFromToken.role === "SUBADMIN" &&
-          subAdminUser?.subadmin?.governorate === user.governorate))
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...userWithoutPassword } = user;
-      return NextResponse.json(userWithoutPassword, { status: 200 });
+    if(subAdminUser){
+      if (
+        userFromToken !== null &&
+        (userFromToken.id === user.id ||
+          userFromToken.role === "ADMIN" ||
+          (userFromToken.role === "SUBADMIN" &&
+            subAdminUser?.subadmin?.governorate === user.governorate))
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...userWithoutPassword } = user;
+        return NextResponse.json(userWithoutPassword, { status: 200 });
+      }
+    }else{
+      if (
+        userFromToken !== null &&
+        (userFromToken.id === user.id ||
+          userFromToken.role === "ADMIN")
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, ...userWithoutPassword } = user;
+        return NextResponse.json(userWithoutPassword, { status: 200 });
+      }
     }
+
+   
 
     return NextResponse.json(
       { message: "ليس لديك الصلاحية " },

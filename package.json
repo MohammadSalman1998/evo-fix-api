@@ -11,6 +11,7 @@
   "dependencies": {
     "@huggingface/inference": "^2.8.1",
     "@prisma/client": "^5.20.0",
+    "@types/firebase": "^2.4.32",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "cookie": "^0.6.0",
@@ -18,6 +19,7 @@
     "dayjs": "^1.11.13",
     "evofix": "file:",
     "express-rate-limit": "^7.4.1",
+    "firebase": "^11.0.2",
     "formidable": "^3.5.1",
     "googletrans": "^1.0.21",
     "ioredis": "^5.4.1",
