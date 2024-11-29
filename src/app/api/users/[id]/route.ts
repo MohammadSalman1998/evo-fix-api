@@ -31,18 +31,18 @@ export async function GET(request: NextRequest, { params }: Props) {
         { status: 403 }
       );
     }
-    const subAdminUser = await prisma.user.findUnique({
-      where: {
-        id: userFromToken?.id,
-      },
-      select: {
-        subadmin: {
-          select: {
-            governorate: true,
-          },
-        },
-      },
-    });
+    // const subAdminUser = await prisma.user.findUnique({
+    //   where: {
+    //     id: userFromToken?.id,
+    //   },
+    //   select: {
+    //     subadmin: {
+    //       select: {
+    //         governorate: true,
+    //       },
+    //     },
+    //   },
+    // });
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -63,53 +63,50 @@ export async function GET(request: NextRequest, { params }: Props) {
         { status: 404 }
       );
     }
-    // const userResponse = {
-    //   id: user.id,
-    //   fullName: user.fullName,
-    //   email: user.email,
-    //   phoneNO: user.phoneNO,
-    //   governorate: user.governorate,
-    //   address: user.address,
-    //   // avatar: user.avatar,
-    //   role: user.role,
-    //   isActive: user.isActive,
-    //   // customerId: user.customer?.id,
-    //   technician_specialization: user.technician?.specialization,
-    //   technician_services: user.technician?.services,
-    //   admin_department: user.subadmin?.department,
-    //   admin_governorate: user.subadmin?.governorate,
-    // };
 
-    if(subAdminUser){
-      if (
-        userFromToken !== null &&
-        (userFromToken.id === user.id ||
-          userFromToken.role === "ADMIN" ||
-          (userFromToken.role === "SUBADMIN" &&
-            subAdminUser?.subadmin?.governorate === user.governorate))
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...userWithoutPassword } = user;
-        return NextResponse.json(userWithoutPassword, { status: 200 });
-      }
-    }else{
-      if (
-        userFromToken !== null &&
-        (userFromToken.id === user.id ||
-          userFromToken.role === "ADMIN")
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, ...userWithoutPassword } = user;
-        return NextResponse.json(userWithoutPassword, { status: 200 });
-      }
+    const hasAccess = checkUserAccess(userFromToken, user);
+
+    if (!hasAccess) {
+      return NextResponse.json(
+        { message: "ليس لديك الصلاحية" },
+        { status: 403 }
+      );
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+    return NextResponse.json(userWithoutPassword, { status: 200 });
+
+    // if(subAdminUser){
+    //   if (
+    //     userFromToken !== null &&
+    //     (userFromToken.id === user.id ||
+    //       userFromToken.role === "ADMIN" ||
+    //       (userFromToken.role === "SUBADMIN" &&
+    //         subAdminUser?.subadmin?.governorate === user.governorate))
+    //   ) {
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     const { password, ...userWithoutPassword } = user;
+    //     return NextResponse.json(userWithoutPassword, { status: 200 });
+    //   }
+    // }else{
+    //   if (
+    //     userFromToken !== null &&
+    //     (userFromToken.id === user.id ||
+    //       userFromToken.role === "ADMIN")
+    //   ) {
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     const { password, ...userWithoutPassword } = user;
+    //     return NextResponse.json(userWithoutPassword, { status: 200 });
+    //   }
+    // }
 
    
 
-    return NextResponse.json(
-      { message: "ليس لديك الصلاحية " },
-      { status: 403 }
-    );
+    // return NextResponse.json(
+    //   { message: "ليس لديك الصلاحية " },
+    //   { status: 403 }
+    // );
   } catch (error) {
     console.error("Error fetching user", error);
     return NextResponse.json({ message: "خطأ من الخادم" }, { status: 500 });
@@ -452,3 +449,31 @@ export async function DELETE(request: NextRequest, { params }: Props) {
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function  checkUserAccess(userFromToken: any, targetUser: any) {
+ 
+  if (userFromToken.id === targetUser.id) {
+    return true;
+  }
+
+  if (userFromToken.role === "ADMIN") {
+    return true;
+  }
+
+  if (userFromToken.role === "SUBADMIN") {
+    const subAdmin = await prisma.user.findUnique({
+      where: { id: userFromToken.id },
+      select: { 
+        subadmin: { 
+          select: { 
+            governorate: true 
+          } 
+        } 
+      }
+    });
+
+    return subAdmin?.subadmin?.governorate === targetUser.governorate;
+}
+
+  return false;
+}
