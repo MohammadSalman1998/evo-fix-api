@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, { params }: Props) {
     console.log("User Role:", user.role);
     console.log("Token User Role:", userFromToken.role);
 
-    const hasAccess = checkUserAccess(userFromToken, user);
+    const hasAccess = await checkUserAccess(userFromToken, user);
 
     if (!hasAccess) {
       return NextResponse.json(
@@ -477,6 +477,7 @@ async function checkUserAccess(userFromToken: any, targetUser: any): Promise<boo
       });
 
       return subAdmin?.subadmin?.governorate === targetUser.governorate;
+
     } catch (error) {
       console.error("Error checking subadmin access:", error);
       return false;
