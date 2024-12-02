@@ -34,10 +34,6 @@ export async function GET(request: NextRequest) {
         customer: true,
         technician: true,
         subadmin: true,
-        maintenanceRequests:true,
-        Epaid:true,
-        Invoice:true,
-        Review:true
       },
       orderBy: { createdAt: "desc" },
     });
