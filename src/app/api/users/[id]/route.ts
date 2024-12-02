@@ -64,6 +64,14 @@ export async function GET(request: NextRequest, { params }: Props) {
       );
     }
 
+    if (user?.Epaid) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      user.Epaid = user.Epaid.map((epaid: any) => ({
+        ...epaid,
+        OperationNumber: epaid.OperationNumber?.toString()
+      }));
+    }
+
     console.log("User Role:", user.role);
     console.log("Token User Role:", userFromToken.role);
 
